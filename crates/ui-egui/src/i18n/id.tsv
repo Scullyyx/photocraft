@@ -2545,3 +2545,9 @@ cameraRaw	Blending	Pembauran
 	% of all commits	% dari semua commit
 	Lines +/−	Baris +/−
 	@{login}: {prs} PRs, {commits} commits, +{added} / −{deleted} lines (Δ {delta}), +{binAdded} / −{binDeleted} binary assets, {first} – {last}	@{login}: {prs} PR, {commits} commit, +{added} / −{deleted} baris (Δ {delta}), +{binAdded} / −{binDeleted} berkas biner, {first} – {last}
+
+	Eyedroppers:	Eyedropper:
+	Set Black Point	Atur Titik Hitam
+	Set Neutral Gray Point	Atur Titik Abu-abu Netral
+	Set White Point	Atur Titik Putih
+	Unavailable in this color mode	Tidak tersedia dalam mode warna ini

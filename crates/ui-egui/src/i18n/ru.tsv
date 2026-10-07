@@ -2401,3 +2401,9 @@ cameraRaw	Roughness	Неровность
 	% of all commits	% от всех коммитов
 	Lines +/−	Строки +/−
 	@{login}: {prs} PRs, {commits} commits, +{added} / −{deleted} lines (Δ {delta}), +{binAdded} / −{binDeleted} binary assets, {first} – {last}	@{login}: PR: {prs}, коммиты: {commits}, строки +{added} / −{deleted} (Δ {delta}), двоичные файлы +{binAdded} / −{binDeleted}, {first} – {last}
+
+	Eyedroppers:	Пипетки:
+	Set Black Point	Задать точку чёрного
+	Set Neutral Gray Point	Задать нейтральную серую точку
+	Set White Point	Задать точку белого
+	Unavailable in this color mode	Недоступно в этом цветовом режиме
