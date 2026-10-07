@@ -274,6 +274,16 @@ pub(crate) fn motion(src: &Image, out: Rect, ctx: &Ctx, angle: f32, distance: f3
     })
 }
 
+// Preserve near-pixel sampling on large canvases without unbounded per-pixel work.
+const MAX_RADIAL_INTERVALS: usize = 4096;
+
+fn radial_intervals(path_length: f32) -> usize {
+    if path_length.is_nan() {
+        return 1;
+    }
+    path_length.ceil().clamp(1.0, MAX_RADIAL_INTERVALS as f32) as usize
+}
+
 pub(crate) fn radial(src: &Image, out: Rect, ctx: &Ctx, amount: f32, method: RadialMethod, center: (f32, f32)) -> Vec<f32> {
     let b = ctx.bounds;
     let (cx, cy) = (b.x0 as f32 + b.width() as f32 * center.0, b.y0 as f32 + b.height() as f32 * center.1);
@@ -285,7 +295,7 @@ pub(crate) fn radial(src: &Image, out: Rect, ctx: &Ctx, amount: f32, method: Rad
             RadialMethod::Spin => {
                 // Arc of `amount` degrees centred on the pixel.
                 let arc = amount.to_radians();
-                let n = ((arc * r).ceil() as i32).clamp(1, 64);
+                let n = radial_intervals(arc * r);
                 for i in 0..=n {
                     let t = (i as f32 / n as f32 - 0.5) * arc;
                     let (s, c) = t.sin_cos();
@@ -295,7 +305,7 @@ pub(crate) fn radial(src: &Image, out: Rect, ctx: &Ctx, amount: f32, method: Rad
             RadialMethod::Zoom => {
                 // Samples along the ray, up to amount/2 % closer to the centre.
                 let span = amount / 200.0;
-                let n = ((span * r).ceil() as i32).clamp(1, 64);
+                let n = radial_intervals(span * r);
                 for i in 0..=n {
                     let k = 1.0 - span * i as f32 / n as f32;
                     pts.push((cx + dx * k, cy + dy * k));
@@ -340,6 +350,51 @@ pub(crate) fn surface(src: &Image, out: Rect, ctx: &Ctx, radius: f32, threshold:
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn radial_blur_samples_large_arcs_beyond_64_intervals() {
+        let bounds = Rect::new(0, 0, 1000, 1000);
+        let out = Rect::new(999, 500, 1000, 501);
+        let ctx = Ctx { bounds, mode: photocraft_color::ColorMode::Grayscale, alpha: false };
+        let mut img = Image::new(bounds, 1);
+        let (cx, cy) = (500.0f32, 500.0f32);
+        let (x, y) = (999.5f32, 500.5f32);
+        let (dx, dy) = (x - cx, y - cy);
+        let arc = 100.0f32.to_radians();
+        let count = radial_intervals(arc * dx.hypot(dy));
+        assert!(count > 64, "large-image radial blur was limited to {count} intervals");
+        assert_eq!(radial_intervals(f32::INFINITY), MAX_RADIAL_INTERVALS);
+        assert_eq!(radial_intervals(f32::NAN), 1);
+
+        // Put a small bright patch halfway between two samples from the former 64-interval
+        // limit. Dense sampling should pick it up; the coarse path misses it entirely.
+        let sparse_midpoint = (31.5 / 64.0 - 0.5) * arc;
+        let (s, c) = sparse_midpoint.sin_cos();
+        let px = (cx + dx * c - dy * s - 0.5).round() as i32;
+        let py = (cy + dx * s + dy * c - 0.5).round() as i32;
+        for yy in py - 1..=py + 1 {
+            for xx in px - 1..=px + 1 {
+                let index = (yy - bounds.y0) as usize * bounds.width() as usize + (xx - bounds.x0) as usize;
+                img.data[index] = 1.0;
+            }
+        }
+
+        let sample_path = |x: f32, y: f32, pts: &mut Vec<(f32, f32)>, intervals: usize| {
+            let (dx, dy) = (x - cx, y - cy);
+            for i in 0..=intervals {
+                let t = (i as f32 / intervals as f32 - 0.5) * arc;
+                let (s, c) = t.sin_cos();
+                pts.push((cx + dx * c - dy * s, cy + dx * s + dy * c));
+            }
+        };
+        let actual = radial(&img, out, &ctx, 100.0, RadialMethod::Spin, (0.5, 0.5))[0];
+        let expected = average_samples(&img, out, &ctx, |x, y, pts| sample_path(x, y, pts, 8192))[0];
+        let coarse = average_samples(&img, out, &ctx, |x, y, pts| sample_path(x, y, pts, 64))[0];
+
+        assert!(actual > 0.001, "dense radial samples should resolve the bright patch, got {actual}");
+        assert!((actual - expected).abs() < 0.0015, "radial result {actual} differs from dense reference {expected}");
+        assert!(coarse < expected * 0.1, "former 64-interval sampling unexpectedly resolved the patch: {coarse} vs {expected}");
+    }
 
     #[test]
     fn box_gaussian_matches_exact_kernel() {
