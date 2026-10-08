@@ -180,6 +180,7 @@ fn rgba_to_region(fmt: &PixelFormat, rect: Rect, rgba: &[[f32; 4]]) -> Region {
     paint
 }
 
+#[allow(clippy::too_many_arguments)]
 fn paint_aligned(
     surf: &mut Surface,
     stroke: &Stroke,
