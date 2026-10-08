@@ -2482,7 +2482,8 @@ fn brush_preset_chip(
 }
 
 /// Drag a layer row to reorder: drop on the upper/lower half to place above/below, or on the middle
-/// of a group to move into it. One `layer.moveTo` command (one undo step).
+/// of a group to move into it. With ⌥ held on release the layer stays put and a copy lands there
+/// instead (Photoshop). One `layer.moveTo` command (one undo step).
 fn layer_drag_and_drop(ctx: &egui::Context, ui: &egui::Ui, l: &Layer, rect: Rect, resp: &egui::Response, actions: &mut Vec<(String, Value)>) {
     let t = Tokens::get(ctx);
     let key = egui::Id::new("layer-drag");
@@ -2492,10 +2493,14 @@ fn layer_drag_and_drop(ctx: &egui::Context, ui: &egui::Ui, l: &Layer, rect: Rect
     let Some(dragged) = ctx.data(|d| d.get_temp::<u64>(key)) else { return };
     let pointer = ctx.input(|i| i.pointer.interact_pos());
     let released = ctx.input(|i| i.pointer.any_released());
+    let copy = ctx.input(|i| i.modifiers.alt);
     if dragged == l.id.0 {
-        // Ghost label following the pointer.
+        // Ghost label following the pointer, and the copy cursor while ⌥ is held.
         if let Some(p) = pointer {
             crate::layer_transfer::ghost(ctx, p, &l.name);
+        }
+        if copy {
+            ctx.set_cursor_icon(egui::CursorIcon::Copy);
         }
         return;
     }
@@ -2524,7 +2529,7 @@ fn layer_drag_and_drop(ctx: &egui::Context, ui: &egui::Ui, l: &Layer, rect: Rect
         }
     }
     if released {
-        actions.push(("layer.moveTo".into(), json!({"layer": dragged, "target": l.id.0, "position": position})));
+        actions.push(("layer.moveTo".into(), json!({"layer": dragged, "target": l.id.0, "position": position, "copy": copy})));
     }
 }
 
