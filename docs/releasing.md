@@ -51,8 +51,8 @@ in the dialog.
 | macOS 11+ (universal: Apple silicon + Intel) | `photocraft-<v>-macos-universal.dmg`, `photocraft-cli-<v>-macos-universal.zip` | `macos-15` |
 | Windows 10+ x64 | `photocraft-<v>-windows-x64.msi`, `photocraft-<v>-windows-x64-portable.zip` | `windows-latest` |
 | Windows 10+ x86 (32-bit) | `photocraft-<v>-windows-x86.msi`, `photocraft-<v>-windows-x86-portable.zip` | `windows-latest` |
-| Linux x86_64 | `photocraft-<v>-linux-x86_64.{AppImage,deb,rpm,tar.gz,flatpak}` | `ubuntu-22.04` (Flatpak: `ubuntu-24.04`) |
-| Linux aarch64 | `photocraft-<v>-linux-aarch64.{AppImage,deb,rpm,tar.gz,flatpak}` | `ubuntu-22.04-arm` (Flatpak: `ubuntu-24.04-arm`) |
+| Linux x86_64 | `photocraft-<v>-linux-x86_64.{AppImage,AppImage.zsync,deb,rpm,tar.gz,flatpak}` | `ubuntu-22.04` (Flatpak: `ubuntu-24.04`) |
+| Linux aarch64 | `photocraft-<v>-linux-aarch64.{AppImage,AppImage.zsync,deb,rpm,tar.gz,flatpak}` | `ubuntu-22.04-arm` (Flatpak: `ubuntu-24.04-arm`) |
 | FreeBSD 14 x86_64 | `photocraft-<v>-freebsd-x86_64.tar.gz` | FreeBSD 14.3 VM on `ubuntu-latest` |
 | Web | `photocraft-web-<v>.zip` (static site; see [`packaging/web/README.md`](../packaging/web/README.md)) | `ubuntu-latest` |
 
@@ -60,6 +60,14 @@ Every binary reports its version, the commit and the build date: `photocraft --v
 `photocraft-cli --version`, and *Help › About PhotoCraft*. CI sets `PHOTOCRAFT_BUILD_SHA` and
 `PHOTOCRAFT_BUILD_DATE`, and `crates/engine/src/build_info.rs` reads them at compile time. A plain
 `cargo build` doesn't set them and reports `0.2.0 (dev build)`.
+
+Every desktop build job (macOS, Windows, Linux, FreeBSD) also checks out [craft-fonts](https://github.com/storytold/craft-fonts)
+at the commit in `CRAFT_FONTS_REF` (top of `release.yml`) and builds with `CRAFT_FONTS_DIR` and
+`CRAFT_FONTS_REQUIRED=1`, so desktop releases embed its Japanese fonts (the web build embeds none: see
+`docs/development.md` › Fonts) and fail rather than ship without them. The packages carry each font's licence as
+`OFL-<family>.txt` (`copy_font_licences` in `packaging/env.sh`; the portable zip on Windows;
+`Contents/Resources/Licenses` in the macOS app). Bump the pin deliberately, together with the one
+in `ci.yml`. Rules: `../craftrules/standards/fonts.md`; build option: `docs/development.md` › Fonts.
 
 ### macOS
 
@@ -148,9 +156,23 @@ plus a scalable SVG, AppStream metainfo, and a shared-mime-info file for `.pcraf
 
 Why these formats:
 
-- **AppImage** runs on any distribution without installing anything. It's the
+- **AppImage** runs on any distribution without installing anything. The
   download-and-go option and the fallback for distros the packages don't cover. It's built
   with the maintained `AppImage/appimagetool`, whose static runtime doesn't need libfuse2.
+  Each AppImage embeds update information (`gh-releases-zsync|…|latest|…`, #349) and ships
+  with a `.zsync` beside it, so AppImageUpdate, AppImageLauncher and similar tools can find
+  the next release and download only the blocks that changed.
+  Its `AppRun` (`packaging/linux/AppRun`) also integrates with the desktop on launch: on
+  Wayland the dock icon comes from the compositor resolving the window's app_id against an
+  *installed* `.desktop` file, which an AppImage alone never provides — without this every
+  AppImage run shows the generic Wayland logo (#593). Best effort: it installs
+  `~/.local/share/applications/ai.storyteller.photocraft.desktop` with `Exec` rewritten to
+  the AppImage's path (`TryExec` dropped, the binary isn't on the host PATH) and the
+  hicolor icons beside it, rewriting only when the content changed, and any failure leaves
+  the launch untouched. `PHOTOCRAFT_NO_DESKTOP_INTEGRATION=1` opts out; to uninstall, `rm
+  ~/.local/share/applications/ai.storyteller.photocraft.desktop` and `find
+  ~/.local/share/icons/hicolor -name 'ai.storyteller.photocraft*' -delete`. The script is
+  covered by `packaging/linux/apprun-test.sh` in the packaging-lint workflow.
 - **.deb** covers Debian, Ubuntu, Mint, Pop!_OS and elementary. **.rpm** covers Fedora, RHEL
   and its clones, and openSUSE. Both integrate with the menu, MIME and icon caches (the
   `postinst.sh` hook) and uninstall cleanly. Both are built by
