@@ -1,0 +1,17 @@
+Clone Stamp source preview comparison
+
+Files: clone-stamp-preview-hidden.png, clone-stamp-preview-visible.png
+Author: PhotoCraft contributors
+Source: PhotoCraft's offscreen snapshot example with an original synthetic test pattern.
+
+The PhotoCraft UI captures are licensed MIT OR Apache-2.0, as described in
+the repository's LICENSE-MIT, LICENSE-APACHE and NOTICE files. Embedded UI
+assets retain their licenses documented in ATTRIBUTION.md. Brand and trademark
+rights remain subject to docs/brand/LICENSE-brand.txt.
+
+The original geometric checkerboard and cross test pattern is dedicated to
+the public domain under CC0-1.0:
+https://creativecommons.org/publicdomain/zero/1.0/
+
+The comparison was rendered from the same build with the Clone Source
+overlay hidden and enabled. It is not a capture of an earlier commit.
