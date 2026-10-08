@@ -161,10 +161,45 @@ pub(crate) fn draw_readout(ctx: &egui::Context, id: &str, cursor: Pos2, labels: 
     });
 }
 
-/// A Brush/Eraser stroke shown while it is drawn: the engine renders the real dabs onto a copy of
-/// the document, and the canvas redraws only what each step changed.
+/// The engine's live stroke of a tool: the Brush, Pencil and Eraser paint dabs, the Clone Stamp
+/// composites its source.
+enum EngineStroke {
+    Brush(photocraft_engine::brush_cmds::LiveStroke),
+    Clone(photocraft_engine::retouch_cmds::LiveClone),
+}
+
+impl EngineStroke {
+    fn doc(&self) -> &std::sync::Arc<photocraft_doc::Document> {
+        match self {
+            Self::Brush(s) => &s.doc,
+            Self::Clone(s) => &s.doc,
+        }
+    }
+    fn bounds(&self) -> DRect {
+        match self {
+            Self::Brush(s) => s.bounds(),
+            Self::Clone(s) => s.bounds(),
+        }
+    }
+    fn push(&mut self, pts: &[photocraft_engine::paint::StrokePoint]) -> photocraft_engine::Result<DRect> {
+        match self {
+            Self::Brush(s) => s.push(pts),
+            Self::Clone(s) => s.push(pts),
+        }
+    }
+    /// The jitter seed the commit must reuse (the Clone Stamp's comes from the session brush).
+    fn seed(&self) -> Option<u64> {
+        match self {
+            Self::Brush(s) => Some(s.seed),
+            Self::Clone(_) => None,
+        }
+    }
+}
+
+/// A stroke shown while it is drawn: the engine renders the real result onto a copy of the
+/// document, and the canvas redraws only what each step changed.
 pub(crate) struct LiveStroke {
-    stroke: photocraft_engine::brush_cmds::LiveStroke,
+    stroke: EngineStroke,
     doc: photocraft_doc::DocId,
     revision: u64,
     /// Preview key of the stroke; step `n` displays as `key + n`.
@@ -205,7 +240,7 @@ fn stroke_params(app: &PhotocraftApp, tool: Tool, erase: bool, points: &[Vec<f64
 
 /// Tools whose strokes the engine renders while they are drawn (`LiveStroke`).
 pub(crate) fn strokes_live(tool: Tool) -> bool {
-    matches!(tool, Tool::Brush | Tool::Pencil | Tool::Eraser)
+    matches!(tool, Tool::Brush | Tool::Pencil | Tool::Eraser | Tool::CloneStamp)
 }
 
 /// The command a live-stroking tool commits: the Pencil's `paint.pencil`, else `paint.stroke`.
@@ -241,8 +276,16 @@ fn begin_live_stroke(app: &PhotocraftApp) -> Option<LiveStroke> {
     static STROKES: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
     let st = app.session.active()?;
     let d = app.drag.as_ref()?;
-    let p = stroke_params(app, d.tool, d.erase, &app.stylus.stroke_points(&d.points));
-    let stroke = photocraft_engine::brush_cmds::LiveStroke::begin_with(&app.session, stroke_command(d.tool), &p).ok()?;
+    let stroke = if d.tool == Tool::CloneStamp {
+        // The params `retouch_ui::finish_stroke` commits.
+        let mut p = crate::retouch_ui::clone_params(app)?;
+        p["points"] = json!(d.points);
+        p["target"] = paint_target(app);
+        EngineStroke::Clone(photocraft_engine::retouch_cmds::LiveClone::begin(&app.session, &p).ok()?)
+    } else {
+        let p = stroke_params(app, d.tool, d.erase, &app.stylus.stroke_points(&d.points));
+        EngineStroke::Brush(photocraft_engine::brush_cmds::LiveStroke::begin_with(&app.session, stroke_command(d.tool), &p).ok()?)
+    };
     let n = STROKES.fetch_add(1, std::sync::atomic::Ordering::Relaxed) & 0xff_ffff;
     let damage = vec![stroke.bounds()];
     Some(LiveStroke { stroke, doc: st.doc.id, revision: st.revision, key: (1 << 44) | (n << 20), damage, fed: d.points.len() })
@@ -477,7 +520,7 @@ fn display_doc(app: &mut PhotocraftApp, idx: usize) -> (std::sync::Arc<Document>
     }
     let st = &app.session.documents()[idx];
     if let Some(l) = live_stroke(app, idx) {
-        return (l.stroke.doc.clone(), l.display_key());
+        return (l.stroke.doc().clone(), l.display_key());
     }
     if let (Some(t), Some(pv)) = (&app.ui.transform, &app.transform_preview)
         && app.session.active_index() == Some(idx)
@@ -679,7 +722,7 @@ fn damage_since(app: &PhotocraftApp, idx: usize, seen: (u64, u64), now: (u64, u6
     }
     let l = live_stroke(app, idx).filter(|l| seen.0 == now.0 && l.display_key() == now.1)?;
     let r = l.since(seen.1 ^ display_key)?;
-    Some(if r.is_empty() { r } else { r.inflate(effect_reach(&l.stroke.doc.layers)) })
+    Some(if r.is_empty() { r } else { r.inflate(effect_reach(&l.stroke.doc().layers)) })
 }
 
 /// Document `doc`'s canvas caches showed a preview that the edit just committed reproduces
@@ -2244,7 +2287,7 @@ fn draw_drag_preview(app: &mut PhotocraftApp, painter: &egui::Painter, xf: &View
     }
     match d.tool {
         // The canvas shows the live stroke itself (`LiveStroke`).
-        Tool::Brush | Tool::Pencil | Tool::Eraser => {}
+        t if strokes_live(t) => {}
         t if t.is_brushlike() || t == Tool::QuickSelection => {
             // Retouching strokes preview as a translucent trail of the brush footprint: a mask,
             // not a brush-wide egui polyline (which zoomed in tessellates into wedges, #189).
@@ -2668,6 +2711,10 @@ pub(crate) fn finish_gesture(app: &mut PhotocraftApp, d: Drag) {
     {
         app.last_stroke_end = Some((st.doc.id, [end[0], end[1]]));
     }
+    // A live Clone Stamp preview ends here; the commit below replaces it.
+    if d.tool == Tool::CloneStamp {
+        app.live_stroke = None;
+    }
     if crate::eraser_ui::finish_stroke(app, d.tool, &d.points) || crate::retouch_ui::finish_stroke(app, d.tool, &d.points, d.modifiers) {
         return;
     }
@@ -2679,8 +2726,8 @@ pub(crate) fn finish_gesture(app: &mut PhotocraftApp, d: Drag) {
         Tool::Brush | Tool::Pencil | Tool::Eraser => {
             let live = app.live_stroke.take();
             let mut p = stroke_params(app, d.tool, d.erase, &app.stylus.stroke_points(&d.points));
-            if let Some(l) = &live {
-                p["seed"] = json!(l.stroke.seed);
+            if let Some(seed) = live.as_ref().and_then(|l| l.stroke.seed()) {
+                p["seed"] = json!(seed);
             }
             // The canvas already shows the stroke: let the commit's damage rect refresh it rather
             // than recompositing the whole document.

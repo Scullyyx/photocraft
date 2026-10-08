@@ -10,6 +10,24 @@ use crate::canvas::ViewXform;
 use crate::state::Tool;
 use crate::theme::Tokens;
 
+/// Clone Stamp / Healing Brush params for the options bar and the clone source (without
+/// `points` and `target`): shared by the live preview and the commit. `None` when no source
+/// point is set yet.
+pub(crate) fn clone_params(app: &PhotocraftApp) -> Option<Value> {
+    let o = &app.ui.tool_options;
+    let mut p = json!({"aligned": o.clone_aligned, "sampleLayer": o.clone_sample});
+    // The Clone Source panel's active slot (set by ⌥-click) drives the stroke: the engine keeps
+    // the aligned pairing and applies the slot's scale/rotation/flip.
+    let slot = app.session.presets.clone.active().source.is_some();
+    match (app.ui.clone_offset.filter(|_| o.clone_aligned && !slot), app.ui.clone_source.filter(|_| !slot)) {
+        _ if slot => {}
+        (Some(off), _) => p["offset"] = json!(off),
+        (None, Some(src)) => p["source"] = json!(src),
+        (None, None) => return None,
+    }
+    Some(p)
+}
+
 /// Finish a stroke with a retouching tool. Returns false if `tool` isn't one.
 pub fn finish_stroke(app: &mut PhotocraftApp, tool: Tool, points: &[[f64; 3]], mods: egui::Modifiers) -> bool {
     let o = app.ui.tool_options.clone();
@@ -18,26 +36,17 @@ pub fn finish_stroke(app: &mut PhotocraftApp, tool: Tool, points: &[[f64; 3]], m
         Tool::SpotHealing => ("paint.spotHealing", json!({"type": o.spot_type, "sampleAllLayers": o.sample_all_layers})),
         Tool::MixerBrush => ("paint.mixerBrush", json!({})),
         Tool::Healing | Tool::CloneStamp => {
-            let mut p = json!({"aligned": o.clone_aligned, "sampleLayer": o.clone_sample});
-            // The Clone Source panel's active slot (set by ⌥-click) drives the stroke: the engine
-            // keeps the aligned pairing and applies the slot's scale/rotation/flip.
-            let slot = app.session.presets.clone.active().source.is_some();
-            match (app.ui.clone_offset.filter(|_| o.clone_aligned && !slot), app.ui.clone_source.filter(|_| !slot)) {
-                _ if slot => {}
-                (Some(off), _) => p["offset"] = json!(off),
-                (None, Some(src)) => p["source"] = json!(src),
-                (None, None) => {
-                    // Photoshop says Option-click on the Mac and Alt-click on Windows.
-                    app.ui.status = if cfg!(target_os = "macos") {
-                        tl!("Option-click to define a source point to clone from")
-                    } else {
-                        tl!("Alt-click to define a source point to clone from")
-                    }
-                    .into();
-                    app.ui.status_error = true;
-                    return true;
+            let Some(p) = clone_params(app) else {
+                // Option-click on the Mac, Alt-click on Windows.
+                app.ui.status = if cfg!(target_os = "macos") {
+                    tl!("Option-click to define a source point to clone from")
+                } else {
+                    tl!("Alt-click to define a source point to clone from")
                 }
-            }
+                .into();
+                app.ui.status_error = true;
+                return true;
+            };
             (if tool == Tool::Healing { "paint.healingBrush" } else { "paint.cloneStamp" }, p)
         }
         Tool::HistoryBrush => ("paint.historyBrush", json!({})),
