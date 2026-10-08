@@ -1817,12 +1817,19 @@ pub fn canvas_view(app: &mut PhotocraftApp, ui: &mut egui::Ui, idx: usize, rect:
         {
             crate::canvas_tool_menu::open_transform(app, [p.x, p.y]);
         }
+        let lasso_retracted = response.secondary_clicked()
+            && match tool {
+                Tool::Lasso => crate::lasso_ui::undo_last_vertex(app),
+                Tool::PolygonLasso => polygon_retract(app),
+                _ => false,
+            };
         if tool == Tool::Lasso {
             crate::lasso_ui::canvas_input(app, &ctx, &xf, &response);
             (buttons.started, buttons.dragged, buttons.stopped, buttons.clicked) = (false, false, false, false);
         }
         // Right-click with the Move tool, or ⌘/Ctrl+right-click: the layers under the pointer.
         if response.secondary_clicked()
+            && !lasso_retracted
             && !transforming
             && crate::layer_pick_ui::is_gesture(tool, mods)
             && let Some(p) = response.interact_pointer_pos()
@@ -1832,6 +1839,7 @@ pub fn canvas_view(app: &mut PhotocraftApp, ui: &mut egui::Ui, idx: usize, rect:
             crate::layer_pick_ui::open(app, [p.x, p.y], d[0], d[1]);
         }
         if response.secondary_clicked()
+            && !lasso_retracted
             && !transforming
             && !crate::layer_pick_ui::is_gesture(tool, mods)
             && let Some(p) = response.interact_pointer_pos()
@@ -2850,6 +2858,18 @@ fn polygon_click(app: &mut PhotocraftApp, x: f64, y: f64, mods: egui::Modifiers)
         app.ui.polygon_mode = selection_mode(app, mods).into();
     }
     app.ui.polygon.push([x, y]);
+}
+
+/// Remove the Polygonal Lasso's last vertex (⌫, Delete or a right-click while drawing, #1229);
+/// removing the only one cancels the polygon. False when no polygon is being drawn.
+pub fn polygon_retract(app: &mut PhotocraftApp) -> bool {
+    if app.ui.polygon.pop().is_none() {
+        return false;
+    }
+    if app.ui.polygon.is_empty() {
+        app.ui.polygon_mode.clear();
+    }
+    true
 }
 
 /// A new-selection polygonal (or magnetic) lasso is being drawn, so the selection it will replace

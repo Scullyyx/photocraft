@@ -199,3 +199,89 @@ fn a_drag_inside_the_selection_moves_it() {
     assert!(h.state().drag.is_none());
     assert_eq!(bounds(h.state()), Some(photocraft_geom::Rect::new(110, 105, 160, 145)));
 }
+
+#[test]
+fn retracting_polygonal_vertices_keeps_the_document_unchanged() {
+    let mut app = app();
+    begin(&mut app, Modifiers::NONE);
+    event(&mut app, "up", 120.0, 50.0, Modifiers::ALT);
+    assert!(waiting_for_vertex(&app));
+    let layer = app.session.active().unwrap().active_layer.unwrap();
+    assert_eq!(app.drag.as_ref().unwrap().points.len(), 3);
+    assert!(undo_last_vertex(&mut app));
+    assert_eq!(app.drag.as_ref().unwrap().points.len(), 2);
+    assert!(undo_last_vertex(&mut app));
+    assert_eq!(app.drag.as_ref().unwrap().points.len(), 1);
+    assert!(undo_last_vertex(&mut app));
+    assert!(!active(&app));
+    assert!(!undo_last_vertex(&mut app));
+    let st = app.session.active().unwrap();
+    assert!(st.doc.layer(layer).is_some());
+    assert!(st.doc.selection.is_none());
+}
+
+#[test]
+fn real_canvas_backspace_and_right_click_retract_polygonal_points() {
+    let mut h = harness();
+    mouse(&mut h, "down", 50.0, 50.0, Modifiers::NONE);
+    mouse(&mut h, "move", 120.0, 50.0, Modifiers::NONE);
+    mouse(&mut h, "up", 120.0, 50.0, Modifiers::ALT);
+    mouse(&mut h, "down", 180.0, 100.0, Modifiers::ALT);
+    mouse(&mut h, "up", 180.0, 100.0, Modifiers::ALT);
+    assert_eq!(h.state().drag.as_ref().unwrap().points.len(), 3);
+    let layer = h.state().session.active().unwrap().active_layer.unwrap();
+
+    h.event(Event::Key { key: egui::Key::Backspace, physical_key: None, pressed: true, repeat: false, modifiers: Modifiers::ALT });
+    h.run_steps(2);
+    assert_eq!(h.state().drag.as_ref().unwrap().points.len(), 2);
+    assert!(h.state().session.active().unwrap().doc.layer(layer).is_some());
+
+    let state = h.state();
+    let view = &state.ui.views[0];
+    let xf = ViewXform { rect: crate::rulers::content_rect(state, state.last_canvas_rect), zoom: view.zoom, center: view.center, flip: false };
+    let pos = xf.to_screen(155.0, 100.0);
+    h.event(Event::PointerMoved(pos));
+    h.event(Event::PointerButton { pos, button: PointerButton::Secondary, pressed: true, modifiers: Modifiers::ALT });
+    h.run_steps(1);
+    h.event(Event::PointerButton { pos, button: PointerButton::Secondary, pressed: false, modifiers: Modifiers::ALT });
+    h.run_steps(2);
+    assert_eq!(h.state().drag.as_ref().unwrap().points.len(), 1);
+    assert!(h.state().ui.canvas_tool_menu.is_none());
+    assert!(h.state().session.active().unwrap().doc.layer(layer).is_some());
+    assert!(h.state().session.active().unwrap().doc.selection.is_none());
+}
+
+#[test]
+fn polygonal_lasso_backspace_and_right_click_remove_the_last_vertex() {
+    // #1229: with the Polygonal Lasso tool, ⌫ took Edit › Clear and wiped the layer.
+    let mut h = harness();
+    h.state_mut().ui.tool = Tool::PolygonLasso;
+    h.run_steps(1);
+    for (x, y) in [(50.0, 50.0), (150.0, 50.0), (150.0, 120.0)] {
+        mouse(&mut h, "down", x, y, Modifiers::NONE);
+        mouse(&mut h, "up", x, y, Modifiers::NONE);
+    }
+    assert_eq!(h.state().ui.polygon.len(), 3);
+    let st = h.state().session.active().unwrap();
+    let (layer, steps) = (st.active_layer.unwrap(), st.history.past_len());
+    for key in [egui::Key::Backspace, egui::Key::Delete] {
+        h.event(Event::Key { key, physical_key: None, pressed: true, repeat: false, modifiers: Modifiers::NONE });
+        h.run_steps(2);
+    }
+    assert_eq!(h.state().ui.polygon.len(), 1);
+    // A right-click removes the last one and cancels the polygon, without a context menu.
+    let app = h.state();
+    let v = &app.ui.views[0];
+    let xf = ViewXform { rect: crate::rulers::content_rect(app, app.last_canvas_rect), zoom: v.zoom, center: v.center, flip: false };
+    let pos = xf.to_screen(90.0, 90.0);
+    h.event(Event::PointerMoved(pos));
+    h.event(Event::PointerButton { pos, button: PointerButton::Secondary, pressed: true, modifiers: Modifiers::NONE });
+    h.run_steps(1);
+    h.event(Event::PointerButton { pos, button: PointerButton::Secondary, pressed: false, modifiers: Modifiers::NONE });
+    h.run_steps(2);
+    assert!(h.state().ui.polygon.is_empty() && h.state().ui.polygon_mode.is_empty());
+    assert!(h.state().ui.canvas_tool_menu.is_none());
+    let st = h.state().session.active().unwrap();
+    assert!(st.doc.layer(layer).is_some(), "the layer survives");
+    assert_eq!(st.history.past_len(), steps, "nothing was edited");
+}
