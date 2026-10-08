@@ -12,6 +12,67 @@ static site in `photocraft-web-<version>/`:
 
 There is no server-side code. Upload the folder's contents anywhere that serves static files.
 
+## Docker
+
+From the repository root (Docker is the only build prerequisite):
+
+```sh
+docker build --load -t photocraft-web:local .
+docker run -d --name photocraft-web --restart unless-stopped \
+  -p 8080:8080 photocraft-web:local
+```
+
+Open **http://localhost:8080/**. The multi-stage `Dockerfile` builds the existing Rust/Wasm
+app with Trunk, including HEIF support, then copies only the static site into NGINX. The
+runtime runs as the `nginx` user on port **8080**, with a `/healthz` endpoint and Docker
+health check. It serves precompressed gzip assets, the Wasm MIME type, immutable hashed
+assets, and an HTML page that revalidates after deployments. No Rust installation, Node.js,
+database, GPU passthrough, or document volume is needed on the host.
+
+The first build downloads Rust dependencies and Trunk's Wasm tools and can take several
+minutes. Subsequent builds reuse Cargo caches. The builder supports Linux amd64 and arm64;
+the default Rust version is 1.95 and Trunk is pinned to 0.21.14, matching the release workflow.
+`RUST_VERSION`, `TRUNK_VERSION`, and `NGINX_VERSION` can be overridden with `--build-arg`.
+The web build does not embed the optional `craft-fonts` checkout.
+
+The Docker build uses thin LTO and one Cargo build job to reduce peak memory, while keeping
+the web profile's size optimizations and `wasm-opt -Oz`. Its Wasm size may differ from the
+release zip figures below; NGINX has no 25 MiB file limit. To use the release zip's fat LTO on
+a builder with more memory, pass `--build-arg CARGO_PROFILE_WASM_RELEASE_LTO=fat`.
+`--build-arg CARGO_BUILD_JOBS=4` enables more concurrent compilation on larger builders. A compiler killed with
+`SIGKILL`/`cannot allocate memory` means the Docker/Podman VM needs more memory or swap.
+
+For a public deployment, put an HTTPS reverse proxy or your hosting platform's TLS endpoint
+in front of container port 8080. With a reverse proxy on the same host, bind only loopback
+(`-p 127.0.0.1:8080:8080`); with a proxy container, connect both through a Docker network.
+HTTPS enables WebGPU and browser clipboard APIs. If hosting under `/photocraft/`, redirect
+`/photocraft` to `/photocraft/` and strip that prefix when proxying to the container. Relative
+asset URLs then work without rebuilding. For example, in an existing HTTPS NGINX server:
+
+```nginx
+location = /photocraft { return 301 /photocraft/; }
+location /photocraft/ {
+    proxy_pass http://127.0.0.1:8080/;
+}
+```
+
+The editor and image processing run on the visitor's device. Open uses the browser file
+picker; Save and Export download files. Preferences use browser localStorage. There is no
+server-side document storage, desktop TCP control server, or web autosave/crash recovery;
+save/download work before closing or reloading the page. A browser with WebGPU or WebGL2 is
+required; `?webgl` forces the fallback when troubleshooting.
+
+Verify a built image with the integration smoke test (Docker and Python 3 required):
+
+```sh
+python3 packaging/web/docker-smoke.py photocraft-web:local
+```
+
+It starts a temporary container with a read-only filesystem and `/tmp` tmpfs, checks health,
+non-root execution, HTML cache policy, generated JS/Wasm MIME types and gzip responses, and
+missing-file 404s, then stops it. This checks serving; to verify the browser renderer, open
+the page, open an image and save/export it.
+
 ## Sizes
 
 Measured on the 0.2.x build (`packaging/web/package.sh`; gzip `-9`, Brotli quality 11):
