@@ -143,7 +143,37 @@ pub fn pill_tab(ui: &mut Ui, label: &str, selected: bool) -> Response {
 
 /// Monospace numeric field with a dimmed unit suffix, Photoshop style. Drag to scrub.
 pub fn value_field(ui: &mut Ui, value: &mut f32, range: std::ops::RangeInclusive<f32>, suffix: &str, width: f32) -> Response {
+    value_field_stepped(ui, value, range, suffix, width, None)
+}
+
+/// Up/Down steps of a [`value_field_stepped`]: the step and a key unique to the field (where it
+/// remembers its editor's id).
+type FieldSteps = Option<(f32, egui::Id)>;
+
+/// [`value_field`] whose Up/Down keys, while it is being edited, move the value by `step` (ten
+/// steps with Shift), like Photoshop's numeric fields.
+fn value_field_stepped(ui: &mut Ui, value: &mut f32, range: std::ops::RangeInclusive<f32>, suffix: &str, width: f32, steps: FieldSteps) -> Response {
     let t = Tokens::get(ui.ctx());
+    let mut stepped = false;
+    // The field's id from last frame (its DragValue's id is auto: stable while the layout is).
+    if let Some((step, id_key)) = steps
+        && let Some(field_id) = ui.data(|d| d.get_temp::<egui::Id>(id_key))
+        && ui.memory(|m| m.has_focus(field_id))
+    {
+        // Shift first: a plain pattern also matches Shift+arrow.
+        let n = ui.input_mut(|i| {
+            let big = i.count_and_consume_key(egui::Modifiers::SHIFT, egui::Key::ArrowUp) as f32
+                - i.count_and_consume_key(egui::Modifiers::SHIFT, egui::Key::ArrowDown) as f32;
+            let small = i.count_and_consume_key(egui::Modifiers::NONE, egui::Key::ArrowUp) as f32
+                - i.count_and_consume_key(egui::Modifiers::NONE, egui::Key::ArrowDown) as f32;
+            big * 10.0 + small
+        });
+        if n != 0.0 {
+            let nv = (*value + n * step).clamp(*range.start(), *range.end());
+            stepped = nv != *value;
+            *value = nv;
+        }
+    }
     let (rect, _) = ui.allocate_exact_size(vec2(width, 24.0), Sense::hover());
     surface(ui, rect, t.field, false);
     if !t.bevel {
@@ -173,6 +203,13 @@ pub fn value_field(ui: &mut Ui, value: &mut f32, range: std::ops::RangeInclusive
     };
     if !suffix.is_empty() {
         ui.painter().text(pos2(rect.right() - 6.0, rect.center().y), Align2::RIGHT_CENTER, suffix, theme::mono(11.0), t.text_faint);
+    }
+    if let Some((_, id_key)) = steps {
+        ui.data_mut(|d| d.insert_temp(id_key, resp.id));
+    }
+    let mut resp = resp;
+    if stepped {
+        resp.mark_changed();
     }
     resp
 }
@@ -209,6 +246,92 @@ fn number_edit(ui: &mut Ui, value: &mut f32, range: std::ops::RangeInclusive<f32
 
 /// Thin-track slider with a round knob. `gradient` paints the track (e.g. hue spectrum).
 pub fn slider(ui: &mut Ui, value: &mut f32, range: std::ops::RangeInclusive<f32>, gradient: Option<&[Color32]>) -> Response {
+    slider_with(ui, value, range, gradient, RowGestures::default())
+}
+
+/// Photoshop's gestures on a slider row beyond click and drag, as measured on Color Balance in
+/// Photoshop 25.4 (Image › Adjustments dialog and the adjustment layer's Properties). Shift, Ctrl
+/// and Alt change nothing about clicks, double-clicks or drags; only the wheel and the arrow keys
+/// take ten steps with Shift.
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct RowGestures {
+    /// A double-click on the slider (knob or track; not the label or field) sets this value.
+    pub reset: Option<f32>,
+    /// Each wheel notch over the slider moves the value by this step (up = higher; ×10 with
+    /// Shift). Photoshop does this in dialogs, not in the Properties panel.
+    pub wheel_step: Option<f32>,
+    /// Up/Down in the field, while editing it, move the value by this step (×10 with Shift).
+    pub key_step: Option<f32>,
+}
+
+/// Wheel notches this frame while the pointer is over `resp` (Shift ×10). Wheel lines add up in
+/// egui memory until they make whole notches (high-resolution wheels report fractions of one);
+/// smooth (point) deltas count `line_scroll_speed` points per notch, like the canvas wheel.
+fn wheel_notches(ui: &Ui, resp: &Response) -> f32 {
+    if !resp.hovered() {
+        return 0.0;
+    }
+    let acc_id = resp.id.with("wheel-acc");
+    let mut acc: f32 = ui.data(|d| d.get_temp(acc_id)).unwrap_or(0.0);
+    let per_line = ui.ctx().options(|o| o.input_options.line_scroll_speed);
+    let per_line = if per_line.is_finite() && per_line > 0.0 { per_line } else { 40.0 };
+    let mut notches = 0.0;
+    let wheel: Vec<(egui::MouseWheelUnit, Vec2, bool)> = ui.input(|i| {
+        i.events
+            .iter()
+            .filter_map(|e| match e {
+                egui::Event::MouseWheel { unit, delta, modifiers, .. } => Some((*unit, *delta, modifiers.shift)),
+                _ => None,
+            })
+            .collect()
+    });
+    for (unit, delta, shift) in wheel {
+        // Some systems turn Shift+wheel into a horizontal scroll.
+        let d = if delta.y != 0.0 { delta.y } else { delta.x };
+        acc += match unit {
+            egui::MouseWheelUnit::Point => d / per_line,
+            _ => d,
+        };
+        let whole = acc.trunc();
+        acc -= whole;
+        notches += if shift { whole * 10.0 } else { whole };
+    }
+    if !acc.is_finite() {
+        acc = 0.0;
+    }
+    ui.data_mut(|d| d.insert_temp(acc_id, acc));
+    if notches.is_finite() { notches } else { 0.0 }
+}
+
+/// Windows' default double-click time (Photoshop's; egui's own default is 0.3 s).
+const DOUBLE_CLICK_S: f64 = 0.5;
+
+/// Whether this click on `resp` completes a double-click, counted the Windows way (Photoshop):
+/// a click soon after a lone click at the same spot; the click after a double-click starts over.
+/// (egui would call a third quick click a triple-click even when the first two weren't a double.)
+fn second_click(ui: &Ui, resp: &Response) -> bool {
+    if !resp.clicked() {
+        return false;
+    }
+    let key = resp.id.with("pc-last-click");
+    let (time, pos) = ui.input(|i| (i.time, i.pointer.interact_pos()));
+    let dist = ui.ctx().options(|o| o.input_options.max_click_dist);
+    let last: Option<(f64, Pos2)> = ui.data(|d| d.get_temp(key));
+    let double = match (last, pos) {
+        (Some((t, p)), Some(q)) => time - t < DOUBLE_CLICK_S && p.distance(q) < dist,
+        _ => false,
+    };
+    ui.data_mut(|d| {
+        if let (false, Some(q)) = (double, pos) {
+            d.insert_temp(key, (time, q));
+        } else {
+            d.remove::<(f64, Pos2)>(key);
+        }
+    });
+    double
+}
+
+fn slider_with(ui: &mut Ui, value: &mut f32, range: std::ops::RangeInclusive<f32>, gradient: Option<&[Color32]>, g: RowGestures) -> Response {
     let t = Tokens::get(ui.ctx());
     let width = ui.available_width().max(60.0);
     let (rect, mut resp) = ui.allocate_exact_size(vec2(width, 18.0), Sense::click_and_drag());
@@ -222,6 +345,23 @@ pub fn slider(ui: &mut Ui, value: &mut f32, range: std::ops::RangeInclusive<f32>
         if (nv - *value).abs() > f32::EPSILON {
             *value = nv;
             resp.mark_changed();
+        }
+    }
+    // The double-click's first click has moved the knob to the pointer; the second resets.
+    if let Some(reset) = g.reset
+        && second_click(ui, &resp)
+    {
+        *value = reset;
+        resp.mark_changed();
+    }
+    if let Some(step) = g.wheel_step {
+        let n = wheel_notches(ui, &resp);
+        if n != 0.0 {
+            let nv = (*value + n * step).clamp(lo, hi);
+            if nv != *value {
+                *value = nv;
+                resp.mark_changed();
+            }
         }
     }
     let f = ((*value - lo) / (hi - lo)).clamp(0.0, 1.0);
@@ -270,15 +410,30 @@ pub fn slider(ui: &mut Ui, value: &mut f32, range: std::ops::RangeInclusive<f32>
 
 /// Labelled slider row: `Label ........ [value field]` above a full-width thin slider.
 pub fn slider_row(ui: &mut Ui, label: &str, value: &mut f32, range: std::ops::RangeInclusive<f32>, suffix: &str, gradient: Option<&[Color32]>) -> Response {
+    slider_row_with(ui, label, value, range, suffix, gradient, RowGestures::default())
+}
+
+/// [`slider_row`] with Photoshop's extra gestures ([`RowGestures`]).
+pub fn slider_row_with(
+    ui: &mut Ui,
+    label: &str,
+    value: &mut f32,
+    range: std::ops::RangeInclusive<f32>,
+    suffix: &str,
+    gradient: Option<&[Color32]>,
+    g: RowGestures,
+) -> Response {
     let t = Tokens::get(ui.ctx());
     let mut changed_resp = None;
+    // Unique per row here (inner Ui ids repeat from row to row).
+    let steps = g.key_step.map(|s| (s, ui.next_auto_id().with("pc-value-field")));
     ui.horizontal(|ui| {
         ui.label(egui::RichText::new(tl!(label)).color(t.text_dim));
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-            changed_resp = Some(value_field(ui, value, range.clone(), suffix, 74.0));
+            changed_resp = Some(value_field_stepped(ui, value, range.clone(), suffix, 74.0, steps));
         });
     });
-    let s = slider(ui, value, range, gradient);
+    let s = slider_with(ui, value, range, gradient, g);
     let mut r = s.clone();
     if let Some(v) = changed_resp
         && v.changed()
