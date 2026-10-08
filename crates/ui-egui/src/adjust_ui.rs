@@ -84,22 +84,15 @@ pub fn color_lookup_editor(app: &mut PhotocraftApp, ui: &mut egui::Ui, id: Layer
         return;
     };
     let builtins = photocraft_engine::adjust_cmds::LOOKS;
-    let current =
-        if lut.is_none() { "none".to_string() } else { builtins.iter().find(|b| b.1 == name).map_or_else(|| "custom".to_string(), |b| b.0.to_string()) };
-    let custom_label = format!("{name} ({size}³)");
-    let mut opts: Vec<(String, &str)> = vec![("none".into(), tl!("Load 3D LUT…"))];
-    opts.extend(builtins.iter().map(|(id, label)| (id.to_string(), *label)));
-    if current == "custom" {
-        opts.push(("custom".into(), custom_label.as_str()));
-    }
-    let mut sel = current.clone();
+    let look = if lut.is_none() { "none".to_string() } else { builtins.iter().find(|b| b.1 == name).map_or_else(|| "custom".to_string(), |b| b.0.to_string()) };
     let mut params: Option<Value> = None;
-    ui.horizontal(|ui| {
-        ui.label(egui::RichText::new(tl!("3D LUT File")).color(t.text_dim));
-        if widgets::dropdown(ui, &format!("clrl-{}", id.0), &mut sel, &opts, 170.0) && sel != current && sel != "custom" {
-            params = Some(json!({"lut": sel}));
-        }
-    });
+    ui.label(egui::RichText::new(tl!("3D LUT File")).color(t.text_dim));
+    let current = crate::lut_library_ui::Current { look: &look, name, size: *size };
+    match crate::lut_library_ui::browser(app, ui, id, &current, &builtins) {
+        Some(crate::lut_library_ui::Pick::Look(look)) => params = Some(json!({"lut": look})),
+        Some(crate::lut_library_ui::Pick::File(file)) => params = Some(json!({"file": file})),
+        None => {}
+    }
     // A path field stands in for the platform file picker (the desktop app's File menu has one).
     let path_key = egui::Id::new(("clrl-path", id.0));
     let mut path: String = ui.data(|d| d.get_temp(path_key)).unwrap_or_default();

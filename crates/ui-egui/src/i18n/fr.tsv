@@ -2564,3 +2564,8 @@ cameraRaw	Blending	Fusion
 	% of all commits	% de tous les commits
 	Lines +/−	Lignes +/−
 	@{login}: {prs} PRs, {commits} commits, +{added} / −{deleted} lines (Δ {delta}), +{binAdded} / −{binDeleted} binary assets, {first} – {last}	@{login} : {prs} PR, {commits} commits, +{added} / −{deleted} lignes (Δ {delta}), +{binAdded} / −{binDeleted} fichiers binaires, {first} – {last}
+	Install Pack…	Installer un pack…
+	Remove Pack	Retirer le pack
+	Built-in	Intégrés
+	Favorites	Favoris
+	Duplicate of	Doublon de

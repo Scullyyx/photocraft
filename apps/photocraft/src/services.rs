@@ -60,6 +60,11 @@ pub fn presets_dir() -> Option<PathBuf> {
     config_dir().map(|d| d.join("Presets"))
 }
 
+/// Installed LUT packs for Color Lookup (see `photocraft_engine::lut_library`).
+pub fn luts_dir() -> Option<PathBuf> {
+    presets_dir().map(|d| d.join("LUTs"))
+}
+
 fn recovery_dir() -> Option<PathBuf> {
     config_dir().map(|d| d.join("Recovery"))
 }
@@ -187,6 +192,7 @@ pub fn native(automation: Option<photocraft_automation::AuthorizedWorkspace>) ->
             }
             Some(d.save_file()?.to_string_lossy().to_string())
         })),
+        pick_folder: Some(Box::new(|| rfd::FileDialog::new().pick_folder().map(|dir| dir.to_string_lossy().into_owned()))),
         write: Some(Box::new(|path: &str, bytes: &[u8]| write_atomic(Path::new(path), bytes))),
         automation_read,
         automation_write,

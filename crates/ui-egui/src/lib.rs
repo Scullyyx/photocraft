@@ -77,6 +77,7 @@ mod layer_transfer;
 pub mod layer_tree_ui;
 pub mod links;
 pub mod liquify_ui;
+pub mod lut_library_ui;
 pub mod magnetic_lasso_ui;
 pub mod mask_thumbs_ui;
 pub mod menu_catalog;
@@ -185,6 +186,8 @@ pub type PickOpenFn = Box<dyn FnMut() -> Option<(String, Result<Vec<u8>, String>
 /// File › Open's multi-file picker: the selected paths, `None` when cancelled.
 pub type PickOpenPathsFn = Box<dyn FnMut() -> Option<Vec<String>>>;
 pub type PickSaveFn = Box<dyn FnMut(&str) -> Option<String>>;
+/// A folder picker: the chosen folder's path, `None` when cancelled.
+pub type PickFolderFn = Box<dyn FnMut() -> Option<String>>;
 pub type WriteFn = Box<dyn FnMut(&str, &[u8]) -> Result<(), String>>;
 /// Read bytes through the desktop control session's authorized read root.
 pub type AutomationReadFn = Box<dyn FnMut(&str) -> Result<(String, Vec<u8>), String>>;
@@ -245,6 +248,8 @@ pub struct Services {
     pub pick_open_paths: Option<PickOpenPathsFn>,
     /// Show a "save file" dialog; returns a path/name to write.
     pub pick_save: Option<PickSaveFn>,
+    /// Show a folder picker (Color Lookup › Install Pack…).
+    pub pick_folder: Option<PickFolderFn>,
     /// Write bytes to a path (native) or trigger a download (web).
     pub write: Option<WriteFn>,
     /// File access used only by control/MCP requests. Interactive dialogs keep
@@ -1050,6 +1055,7 @@ impl eframe::App for PhotocraftApp {
             self.automation_input = false;
             return;
         }
+        lut_library_ui::end_stale_preview(self, &ctx);
         let t0 = gpu_canvas::now_ms();
         // View › Screen Mode › Full Screen Mode: only the image, on black (F or Esc returns).
         let chrome = !self.ui.view.hides_chrome();
