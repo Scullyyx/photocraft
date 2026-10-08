@@ -314,7 +314,8 @@ impl LiveRetouch {
             LivePaint::History(src) if src.format() != pre_surf.format() => LivePaint::History(src.convert(pre_surf.format())),
             other => other,
         };
-        let mut live = Self { doc: std::sync::Arc::new(doc), renderer, pre, pre_surf, id, params: p.clone(), paint, mode, opacity, sel, lock, tail: Rect::EMPTY };
+        let mut live =
+            Self { doc: std::sync::Arc::new(doc), renderer, pre, pre_surf, id, params: p.clone(), paint, mode, opacity, sel, lock, tail: Rect::EMPTY };
         live.push(&stroke.points)?;
         Ok(live)
     }
@@ -681,7 +682,9 @@ impl DabTool {
     fn effect(&self, fmt: PixelFormat, spacing: f32) -> DabEffect {
         let sp = spacing;
         match self.clone() {
-            Self::Tone { burn, range, exposure, protect } => Box::new(move |work, fp| color_dab(&fmt, work, fp, exposure, sp, |c, k| dodge_burn(c, k, range, burn, protect))),
+            Self::Tone { burn, range, exposure, protect } => {
+                Box::new(move |work, fp| color_dab(&fmt, work, fp, exposure, sp, |c, k| dodge_burn(c, k, range, burn, protect)))
+            }
             // Flow is already in each dab's coverage; a full-flow pass moves colours half-way.
             Self::Sponge { saturate, vibrance } => Box::new(move |work, fp| color_dab(&fmt, work, fp, 0.5, sp, |c, k| sponge(c, k, saturate, vibrance))),
             Self::Focus { sharpen, strength, protect, sigma } => {

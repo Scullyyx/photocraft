@@ -571,7 +571,11 @@ impl StrokeRenderer {
     /// the stroke bounds, and forget them: what a live preview that composites its own paint has
     /// to redraw.
     pub fn take_dirty_rect(&mut self) -> Rect {
-        let r = self.cov.take_dirty().into_iter().fold(Rect::EMPTY, |acc, (tx, ty)| acc.union(&Rect::new(tx * COV_TILE, ty * COV_TILE, (tx + 1) * COV_TILE, (ty + 1) * COV_TILE)));
+        let r = self
+            .cov
+            .take_dirty()
+            .into_iter()
+            .fold(Rect::EMPTY, |acc, (tx, ty)| acc.union(&Rect::new(tx * COV_TILE, ty * COV_TILE, (tx + 1) * COV_TILE, (ty + 1) * COV_TILE)));
         if let Some(d) = self.dual.as_mut() {
             d.dirty.clear();
         }
