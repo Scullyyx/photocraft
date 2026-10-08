@@ -1268,6 +1268,22 @@ fn readout(t: &TransformSession) -> (f64, f64, f64, f64) {
 /// Width of the mode, cancel and commit cluster kept on the right of the options bar.
 const ACTIONS_W: f32 = 140.0;
 
+/// Reach of the reference point X/Y fields: the largest document side (`image.canvasSize`'s limit).
+const POSITION_LIMIT_PX: f32 = 300_000.0;
+/// Reach of the W/H fields. The engine takes any scale; this lets a 30 px layer span the largest
+/// document (#1267).
+const SCALE_LIMIT_PCT: f32 = 1_000_000.0;
+
+/// The W or H field's limit for a box side of `side` px: as far as the result stays within the
+/// largest document side, so a typed scale can't ask for an image too large to allocate.
+fn scale_limit_pct(side: f64) -> f32 {
+    let side = side.abs();
+    if !side.is_finite() || side < 1e-6 {
+        return SCALE_LIMIT_PCT;
+    }
+    ((f64::from(POSITION_LIMIT_PX) / side * 100.0) as f32).clamp(100.0, SCALE_LIMIT_PCT)
+}
+
 /// Options bar while transforming: reference point X/Y, W/H %, angle, interpolation, and, pinned
 /// to the right, the warp switch, cancel and commit.
 pub fn options_bar(app: &mut PhotocraftApp, ui: &mut egui::Ui) {
@@ -1299,9 +1315,9 @@ fn transform_fields(app: &mut PhotocraftApp, ui: &mut egui::Ui, t: &TransformSes
     let mut px = t.pivot[0] as f32;
     let mut py = t.pivot[1] as f32;
     lbl(ui, "X:");
-    let rx = crate::widgets::value_field(ui, &mut px, -30000.0..=30000.0, "px", 72.0);
+    let rx = crate::widgets::value_field(ui, &mut px, -POSITION_LIMIT_PX..=POSITION_LIMIT_PX, "px", 72.0);
     lbl(ui, "Y:");
-    let ry = crate::widgets::value_field(ui, &mut py, -30000.0..=30000.0, "px", 72.0);
+    let ry = crate::widgets::value_field(ui, &mut py, -POSITION_LIMIT_PX..=POSITION_LIMIT_PX, "px", 72.0);
     if (rx.changed() || ry.changed())
         && let Some(s) = app.ui.transform.as_mut()
     {
@@ -1311,8 +1327,9 @@ fn transform_fields(app: &mut PhotocraftApp, ui: &mut egui::Ui, t: &TransformSes
     }
     crate::widgets::vline(ui, 22.0);
     let (mut w, mut h) = (sx as f32, sy as f32);
+    let (wlim, hlim) = (scale_limit_pct(t.rect[2] - t.rect[0]), scale_limit_pct(t.rect[3] - t.rect[1]));
     lbl(ui, "W:");
-    let rw = crate::widgets::value_field(ui, &mut w, -10000.0..=10000.0, "%", 66.0);
+    let rw = crate::widgets::value_field(ui, &mut w, -wlim..=wlim, "%", 66.0);
     let link_id = egui::Id::new("transform-link");
     let mut link: bool = ui.data(|d| d.get_temp(link_id)).unwrap_or(true);
     if crate::icons::button(ui, if link { "link" } else { "unlink" }, 22.0, link, tl!("Maintain aspect ratio")).clicked() {
@@ -1320,10 +1337,12 @@ fn transform_fields(app: &mut PhotocraftApp, ui: &mut egui::Ui, t: &TransformSes
         ui.data_mut(|d| d.insert_temp(link_id, link));
     }
     lbl(ui, "H:");
-    let rh = crate::widgets::value_field(ui, &mut h, -10000.0..=10000.0, "%", 66.0);
+    let rh = crate::widgets::value_field(ui, &mut h, -hlim..=hlim, "%", 66.0);
     if rw.changed() || rh.changed() {
         let (kx, ky) = if link {
             let k = if rw.changed() { w as f64 / sx.max(1e-9) } else { h as f64 / sy.max(1e-9) };
+            // Linked, the other side follows: keep it within its own limit too.
+            let k = k.min(f64::from(wlim) / sx.abs().max(1e-9)).min(f64::from(hlim) / sy.abs().max(1e-9));
             (k, k)
         } else {
             (w as f64 / sx.max(1e-9), h as f64 / sy.max(1e-9))
@@ -1592,6 +1611,60 @@ mod tests {
         h.get_by_label("Cancel transform").click();
         h.run_steps(2);
         assert!(h.state().ui.transform.is_none());
+    }
+
+    /// Types `text` + Enter into the `n`th numeric field of the transform bar (X, Y, W, H, angle…).
+    fn type_into_bar_field(n: usize, text: &str) -> TransformSession {
+        use egui_kittest::Harness;
+        use egui_kittest::kittest::Queryable;
+        let mut app = PhotocraftApp::new(photocraft_engine::Session::new(), crate::Services::default());
+        app.ui.transform = Some(session());
+        let mut h = Harness::builder().with_size(vec2(900.0, 48.0)).build_ui_state(
+            |ui, app: &mut PhotocraftApp| {
+                if !ui.ctx().fonts(|f| f.families().contains(&egui::FontFamily::Name("medium".into()))) {
+                    return;
+                }
+                ui.horizontal_centered(|ui| options_bar(app, ui));
+            },
+            app,
+        );
+        PhotocraftApp::setup_context(&h.ctx, crate::theme::ThemeKind::Studio);
+        h.run_steps(6);
+        h.get_all_by_role(egui::accesskit::Role::SpinButton).nth(n).unwrap().click();
+        h.run();
+        for c in text.chars() {
+            h.event(egui::Event::Text(c.to_string()));
+            h.run();
+        }
+        h.key_press(egui::Key::Enter);
+        h.run_steps(2);
+        h.state().ui.transform.clone().unwrap()
+    }
+
+    /// Large documents need scales past 10000% and positions past 30000 px (#1267).
+    #[test]
+    fn transform_fields_reach_large_documents() {
+        let t = type_into_bar_field(2, "15000");
+        let (sx, sy, _, _) = readout(&t);
+        assert!((sx - 15000.0).abs() < 0.5 && (sy - 15000.0).abs() < 0.5, "{sx} {sy}");
+        assert!((t.quad[1][0] - t.quad[0][0] - 15_000.0).abs() < 1.0, "{:?}", t.quad);
+        let t = type_into_bar_field(0, "250000");
+        assert!((t.pivot[0] - 250_000.0).abs() < 1.0, "{:?}", t.pivot);
+    }
+
+    /// A typed scale stops where the box reaches the largest document side, not past what can be
+    /// allocated: the 100 × 50 px test box tops out at 300000 % wide.
+    #[test]
+    fn typed_scales_stay_within_the_largest_document() {
+        assert_eq!(scale_limit_pct(20.0), SCALE_LIMIT_PCT);
+        assert_eq!(scale_limit_pct(3000.0), 10_000.0);
+        assert_eq!(scale_limit_pct(1e9), 100.0);
+        assert_eq!(scale_limit_pct(0.0), SCALE_LIMIT_PCT);
+        assert_eq!(scale_limit_pct(f64::NAN), SCALE_LIMIT_PCT);
+        let t = type_into_bar_field(2, "99999999");
+        let (sx, sy, _, _) = readout(&t);
+        let side = t.rect[2] - t.rect[0];
+        assert!(sx <= f64::from(scale_limit_pct(side)) + 0.5 && sy <= f64::from(scale_limit_pct(t.rect[3] - t.rect[1])) + 0.5, "{sx} {sy}");
     }
 
     fn drag(s: &mut TransformSession, from: [f64; 2], to: [f64; 2], mods: egui::Modifiers) {
