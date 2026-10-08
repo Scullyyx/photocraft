@@ -87,6 +87,10 @@ pub fn badge(app: &PhotocraftApp, tool: Tool, m: egui::Modifiers) -> Option<Badg
     if !is_selection_tool(tool) {
         return None;
     }
+    // ⌘ (⌘⌥) drags pixels or the layer instead of combining selections.
+    if m.command && app.drag.is_none() {
+        return None;
+    }
     // ⌘ (⌘⌥) drags the selection's pixels instead of combining selections.
     if m.command && app.drag.is_none() && app.session.active().is_some_and(|st| st.doc.selection.is_some()) {
         return None;

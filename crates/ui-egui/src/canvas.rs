@@ -2482,6 +2482,20 @@ pub fn tool_event(app: &mut PhotocraftApp, ev: ToolEvent, mods: egui::Modifiers)
             if !sets_source && crate::rasterize_prompt::intercept(app, tool, x, y, pressure) {
                 return;
             }
+            // ⌘ with a selection tool is the Move tool for the drag: outside the selection (or
+            // without one) it moves the whole layer, ⌘⌥ a duplicate of it. It never combines
+            // selections.
+            if command_moves_layer(app, tool, [x, y], mods) {
+                if mods.alt
+                    && let Err(e) = app.run("layer.duplicate", json!({}))
+                {
+                    app.ui.status = e;
+                    app.ui.status_error = true;
+                    return;
+                }
+                app.drag = Some(Drag::new(Tool::Move, [x, y], vec![[x, y, pressure as f64]], mods, false));
+                return;
+            }
             // Marquee / lasso inside the selection: drag the outline, or ⌘-drag to cut the selected
             // pixels into a floating piece (`select.float`) and drag that.
             if let Some(cut) = selection_drag_kind(app, tool, [x, y], mods) {
@@ -2621,6 +2635,15 @@ pub fn selection_drag_kind(app: &PhotocraftApp, tool: Tool, p: [f64; 2], mods: e
         return None;
     }
     (!clicky && !mods.command && selection_mode(app, mods) == "replace").then_some(false)
+}
+
+/// Does a ⌘ (⌘⌥) press with selection tool `tool` at `p` move the whole layer (a duplicate with
+/// ⌥), as the Move tool would? Outside the selection or without one; inside it, ⌘ drags the
+/// selected pixels instead (`selection_drag_kind`).
+fn command_moves_layer(app: &PhotocraftApp, tool: Tool, p: [f64; 2], mods: egui::Modifiers) -> bool {
+    let selection_tool = matches!(tool, Tool::RectMarquee | Tool::EllipseMarquee | Tool::Lasso | Tool::PolygonLasso | Tool::MagicWand);
+    let floating = app.session.active().is_some_and(|st| photocraft_engine::float_cmds::floating(st).is_some());
+    selection_tool && mods.command && !mods.shift && !floating && app.ui.polygon.is_empty() && !inside_selection(app, p)
 }
 
 /// Whole-pixel offset of a selection drag in progress (`Drag::sel_move`).
