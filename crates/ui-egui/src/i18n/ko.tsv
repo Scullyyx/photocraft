@@ -2717,3 +2717,11 @@ cameraRaw	Color	색상
 	% of all commits	전체 커밋 대비 %
 	Lines +/−	줄 +/−
 	@{login}: {prs} PRs, {commits} commits, +{added} / −{deleted} lines (Δ {delta}), +{binAdded} / −{binDeleted} binary assets, {first} – {last}	@{login}: PR {prs}개, 커밋 {commits}개, 줄 +{added} / −{deleted} (Δ {delta}), 바이너리 +{binAdded} / −{binDeleted}, {first} – {last}
+
+# Shared screen eyedropper and text Color Picker (#1128).
+	Color Picker (Text Color)	색상 선택기 (텍스트 색상)
+	Pick screen color	화면 색상 선택
+	Sample a pixel anywhere on the screen	화면의 아무 픽셀에서 색상 추출
+	Click to pick · Esc to cancel	클릭하여 선택 · Esc로 취소
+	Pick a screen pixel or press Esc to cancel	화면 픽셀을 선택하거나 Esc를 눌러 취소
+	Scroll to zoom	스크롤하여 확대/축소

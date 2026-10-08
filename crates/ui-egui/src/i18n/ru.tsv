@@ -2407,3 +2407,11 @@ cameraRaw	Roughness	Неровность
 	% of all commits	% от всех коммитов
 	Lines +/−	Строки +/−
 	@{login}: {prs} PRs, {commits} commits, +{added} / −{deleted} lines (Δ {delta}), +{binAdded} / −{binDeleted} binary assets, {first} – {last}	@{login}: PR: {prs}, коммиты: {commits}, строки +{added} / −{deleted} (Δ {delta}), двоичные файлы +{binAdded} / −{binDeleted}, {first} – {last}
+
+# Shared screen eyedropper and text Color Picker (#1128).
+	Color Picker (Text Color)	Палитра цветов (Цвет текста)
+	Pick screen color	Выбрать цвет на экране
+	Sample a pixel anywhere on the screen	Выберите пиксель в любом месте экрана
+	Click to pick · Esc to cancel	Щелчок — выбрать · Esc — отменить
+	Pick a screen pixel or press Esc to cancel	Выберите пиксель на экране или нажмите Esc для отмены
+	Scroll to zoom	Колесо — изменить масштаб

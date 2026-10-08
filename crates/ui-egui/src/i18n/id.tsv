@@ -2551,3 +2551,11 @@ cameraRaw	Blending	Pembauran
 	% of all commits	% dari semua commit
 	Lines +/−	Baris +/−
 	@{login}: {prs} PRs, {commits} commits, +{added} / −{deleted} lines (Δ {delta}), +{binAdded} / −{binDeleted} binary assets, {first} – {last}	@{login}: {prs} PR, {commits} commit, +{added} / −{deleted} baris (Δ {delta}), +{binAdded} / −{binDeleted} berkas biner, {first} – {last}
+
+# Shared screen eyedropper and text Color Picker (#1128).
+	Color Picker (Text Color)	Pemilih Warna (Warna Teks)
+	Pick screen color	Pilih warna layar
+	Sample a pixel anywhere on the screen	Ambil sampel piksel di mana saja pada layar
+	Click to pick · Esc to cancel	Klik untuk memilih · Esc untuk membatalkan
+	Pick a screen pixel or press Esc to cancel	Pilih piksel layar atau tekan Esc untuk membatalkan
+	Scroll to zoom	Gulir untuk memperbesar

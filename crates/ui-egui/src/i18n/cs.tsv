@@ -2133,3 +2133,11 @@ cameraRaw	Color	Barvy
 	% of all commits	% všech commitů
 	Lines +/−	Řádky +/−
 	@{login}: {prs} PRs, {commits} commits, +{added} / −{deleted} lines (Δ {delta}), +{binAdded} / −{binDeleted} binary assets, {first} – {last}	@{login}: PR: {prs}, commity: {commits}, řádky +{added} / −{deleted} (Δ {delta}), binární soubory +{binAdded} / −{binDeleted}, {first} – {last}
+
+# Shared screen eyedropper and text Color Picker (#1128).
+	Color Picker (Text Color)	Výběr barvy (Barva textu)
+	Pick screen color	Vybrat barvu obrazovky
+	Sample a pixel anywhere on the screen	Vzorkovat pixel kdekoli na obrazovce
+	Click to pick · Esc to cancel	Kliknutí vybere · Esc zruší
+	Pick a screen pixel or press Esc to cancel	Vyberte pixel obrazovky nebo stiskněte Esc pro zrušení
+	Scroll to zoom	Rolováním přibližujte

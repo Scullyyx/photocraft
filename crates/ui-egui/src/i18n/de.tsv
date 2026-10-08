@@ -2172,3 +2172,11 @@
 	% of all commits	% aller Commits
 	Lines +/−	Zeilen +/−
 	@{login}: {prs} PRs, {commits} commits, +{added} / −{deleted} lines (Δ {delta}), +{binAdded} / −{binDeleted} binary assets, {first} – {last}	@{login}: {prs} PRs, {commits} Commits, +{added} / −{deleted} Zeilen (Δ {delta}), +{binAdded} / −{binDeleted} Binärdateien, {first} – {last}
+
+# Shared screen eyedropper and text Color Picker (#1128).
+	Color Picker (Text Color)	Farbwähler (Textfarbe)
+	Pick screen color	Bildschirmfarbe auswählen
+	Sample a pixel anywhere on the screen	Ein Pixel an beliebiger Stelle auf dem Bildschirm auswählen
+	Click to pick · Esc to cancel	Klicken zum Auswählen · Esc zum Abbrechen
+	Pick a screen pixel or press Esc to cancel	Ein Bildschirmpixel auswählen oder mit Esc abbrechen
+	Scroll to zoom	Zum Zoomen scrollen

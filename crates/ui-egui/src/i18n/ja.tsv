@@ -2116,3 +2116,11 @@ cameraRaw	Color	カラー
 	% of all commits	全コミットに占める割合 (%)
 	Lines +/−	行数 +/−
 	@{login}: {prs} PRs, {commits} commits, +{added} / −{deleted} lines (Δ {delta}), +{binAdded} / −{binDeleted} binary assets, {first} – {last}	@{login}: PR {prs} 件、コミット {commits} 件、行 +{added} / −{deleted} (Δ {delta})、バイナリ +{binAdded} / −{binDeleted}、{first} – {last}
+
+# Shared screen eyedropper and text Color Picker (#1128).
+	Color Picker (Text Color)	カラーピッカー（文字色）
+	Pick screen color	画面の色を選択
+	Sample a pixel anywhere on the screen	画面上の任意のピクセルから色を取得
+	Click to pick · Esc to cancel	クリックで選択 · Escでキャンセル
+	Pick a screen pixel or press Esc to cancel	画面のピクセルを選択するか、Escでキャンセル
+	Scroll to zoom	スクロールしてズーム

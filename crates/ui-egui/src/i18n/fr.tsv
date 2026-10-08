@@ -2564,3 +2564,11 @@ cameraRaw	Blending	Fusion
 	% of all commits	% de tous les commits
 	Lines +/−	Lignes +/−
 	@{login}: {prs} PRs, {commits} commits, +{added} / −{deleted} lines (Δ {delta}), +{binAdded} / −{binDeleted} binary assets, {first} – {last}	@{login} : {prs} PR, {commits} commits, +{added} / −{deleted} lignes (Δ {delta}), +{binAdded} / −{binDeleted} fichiers binaires, {first} – {last}
+
+# Shared screen eyedropper and text Color Picker (#1128).
+	Color Picker (Text Color)	Sélecteur de couleurs (Couleur du texte)
+	Pick screen color	Choisir une couleur à l’écran
+	Sample a pixel anywhere on the screen	Prélever un pixel n’importe où sur l’écran
+	Click to pick · Esc to cancel	Cliquer pour choisir · Échap pour annuler
+	Pick a screen pixel or press Esc to cancel	Choisissez un pixel à l’écran ou appuyez sur Échap pour annuler
+	Scroll to zoom	Défiler pour zoomer

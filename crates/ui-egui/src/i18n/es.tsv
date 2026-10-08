@@ -2204,3 +2204,11 @@ cameraRaw	Amount	Cantidad
 	% of all commits	% de todos los commits
 	Lines +/−	Líneas +/−
 	@{login}: {prs} PRs, {commits} commits, +{added} / −{deleted} lines (Δ {delta}), +{binAdded} / −{binDeleted} binary assets, {first} – {last}	@{login}: {prs} PR, {commits} commits, +{added} / −{deleted} líneas (Δ {delta}), +{binAdded} / −{binDeleted} archivos binarios, {first} – {last}
+
+# Shared screen eyedropper and text Color Picker (#1128).
+	Color Picker (Text Color)	Selector de color (Color del texto)
+	Pick screen color	Elegir color de pantalla
+	Sample a pixel anywhere on the screen	Tomar un píxel en cualquier lugar de la pantalla
+	Click to pick · Esc to cancel	Clic para elegir · Esc para cancelar
+	Pick a screen pixel or press Esc to cancel	Elige un píxel de pantalla o pulsa Esc para cancelar
+	Scroll to zoom	Desplaza para ampliar
