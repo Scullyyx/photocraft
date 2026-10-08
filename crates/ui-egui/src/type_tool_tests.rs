@@ -690,7 +690,7 @@ fn temporary_type_transform_free_scale_center_scale_move_skew_and_rotation() {
 #[test]
 fn temporary_type_transform_noop_cancel_and_stale_capture() {
     use crate::canvas::{ToolEvent, tool_event};
-    for stop in ["noop", "escape", "focus", "tool", "undo", "delete", "document"] {
+    for stop in ["noop", "escape", "focus", "tool", "undo", "delete", "document", "close"] {
         let original = Affine::translate(400.0, 350.0);
         let (app, id) = transform_app(false, false, original);
         let mut h = harness(1.0, app);
@@ -699,7 +699,10 @@ fn temporary_type_transform_noop_cancel_and_stale_capture() {
         let count = h.state().session.active().unwrap().history.entries().len();
         tool_event(h.state_mut(), ToolEvent::Down { x: a[0], y: a[1], pressure: 1.0 }, type_command());
         tool_event(h.state_mut(), ToolEvent::Move { x: a[0] + 50.0, y: a[1] + 20.0, pressure: 1.0 }, type_command());
-        crate::type_transform::display_doc(h.state_mut(), 0).unwrap();
+        let preview = {
+            let (shown, _) = crate::type_transform::display_doc(h.state_mut(), 0).unwrap();
+            std::sync::Arc::downgrade(&shown)
+        };
         assert_eq!(text(h.state(), id).transform, original);
         match stop {
             "noop" => tool_event(h.state_mut(), ToolEvent::Up { x: a[0], y: a[1] }, Modifiers::NONE),
@@ -721,11 +724,15 @@ fn temporary_type_transform_noop_cancel_and_stale_capture() {
             "delete" => {
                 h.state_mut().run("layer.delete", json!({"layer": id.0})).unwrap();
             }
+            "close" => {
+                h.state_mut().run("file.close", json!({})).unwrap();
+            }
             _ => {
                 h.state_mut().run("file.new", json!({"width": 20, "height": 20})).unwrap();
             }
         }
         assert!(h.state().ui.type_transform.is_none(), "{stop}");
+        assert!(preview.upgrade().is_none(), "{stop}: release rendered preview without waiting for another frame");
         if ["noop", "escape", "focus", "tool"].contains(&stop) {
             assert_eq!(text(h.state(), id).transform, original);
             assert_eq!(h.state().session.active().unwrap().history.entries().len(), count);

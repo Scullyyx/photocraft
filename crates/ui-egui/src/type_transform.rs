@@ -58,6 +58,10 @@ pub(crate) fn cancel_stale(app: &mut PhotocraftApp) {
 
 pub(crate) fn cancel_drag(app: &mut PhotocraftApp) {
     app.ui.type_transform = None;
+    if let Some(p) = app.type_transform_preview.as_mut() {
+        // A closed last document has no next canvas frame to release its preview's tiles.
+        p.shown = None;
+    }
     if let Some(ed) = app.ui.text_edit.as_mut() {
         ed.dragging = false;
         ed.resize = None;
@@ -205,6 +209,7 @@ fn update(app: &mut PhotocraftApp, p: [f64; 2], mods: Modifiers) {
 pub(crate) fn finish(app: &mut PhotocraftApp) {
     cancel_stale(app);
     let Some(t) = app.ui.type_transform.take() else { return };
+    cancel_drag(app);
     app.ui.type_transform_pivot = Some(t.frame.pivot);
     let Some(transform) = affine(&t) else { return };
     // Pivot-only and out-and-back gestures leave no history entry, even in an untouched session.
