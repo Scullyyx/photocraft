@@ -11,6 +11,7 @@
 | `photocraft-transform.jpg` | Photocraft UI screenshot (offscreen snapshot) with *The Tetons and the Snake River*, Ansel Adams, 1942 (U.S. National Archives) | Artwork: public domain, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Adams_The_Tetons_and_the_Snake_River.jpg). UI: this project. |
 | `photocraft-type.jpg` | Photocraft UI screenshot (offscreen snapshot) with *Among the Sierra Nevada, California*, Albert Bierstadt, 1868 | Artwork: public domain, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Albert_Bierstadt_-_Among_the_Sierra_Nevada,_California_-_Google_Art_Project.jpg). UI: this project. |
 | `photocraft-export-light.jpg` | Photocraft UI screenshot (offscreen snapshot) with *The Kiss*, Gustav Klimt, 1907–1908 | Artwork: public domain, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Gustav_Klimt_016.jpg). UI: this project. |
+| `transform-cancel-before.png`, `transform-cancel-after.png` | PhotoCraft offscreen snapshots: switch from Free Transform on a copy in Origin A to Selected B. Before, B loses its blue fill; after, B keeps it and A's copy is removed. | Original synthetic rectangles created in PhotoCraft, dedicated to the public domain (CC0-1.0). UI: MIT OR Apache-2.0, except the ArtCraft mark. See `LICENSE-transform-cancel.txt`. |
 
 Screenshots must use famous public-domain artwork (or content made in the app), never personal photos.
 
