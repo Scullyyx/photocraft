@@ -254,6 +254,50 @@ fn brush_tip_centre(tool: Tool, option: bool, show_crosshair: bool, radius: f32)
     show_crosshair || radius > 6.0 || tool == Tool::BackgroundEraser
 }
 
+/// The display colour of an RGB triple (0..1 per channel) as an egui colour.
+fn display_color(c: [f32; 3]) -> Color32 {
+    let b = |v: f32| (v.clamp(0.0, 1.0) * 255.0).round() as u8;
+    Color32::from_rgb(b(c[0]), b(c[1]), b(c[2]))
+}
+
+/// The Eyedropper ring's two colours at document point (x, y): the colour under the pointer
+/// (what a click would pick) and the current foreground, or `None` where there is no colour
+/// to sample (#213).
+pub(crate) fn eyedropper_ring_colors(app: &mut PhotocraftApp, x: f64, y: f64) -> Option<(Color32, Color32)> {
+    let new = composite_color(app, x, y)?;
+    let fg = app.session.tools.foreground;
+    Some((display_color(new), display_color([fg[0], fg[1], fg[2]])))
+}
+
+/// Draw the Eyedropper's comparison ring at `p`: the sampled colour on the upper arc, the
+/// current one below, both over a thin dark outline so they read on any image (#213). `None`
+/// when there is nothing to sample, or the Precise-cursor preference wants the plain crosshair.
+fn eyedropper_ring(app: &mut PhotocraftApp, painter: &egui::Painter, xf: &ViewXform, p: Pos2) -> Option<egui::CursorIcon> {
+    if app.session.prefs().cursors.other == photocraft_engine::prefs::OtherCursor::Precise {
+        return None;
+    }
+    let [x, y] = xf.to_doc(p);
+    let (new, current) = eyedropper_ring_colors(app, x, y)?;
+    // Two arcs with a small gap at 3 and 9 o'clock. Screen y grows down, so PI..TAU is the
+    // upper half (the new colour) and 0..PI the lower (the current one).
+    use std::f32::consts::{PI, TAU};
+    let (r, w, gap) = (11.0_f32, 4.0_f32, 0.16_f32);
+    let arc = |a0: f32, a1: f32| -> Vec<Pos2> {
+        (0..=24)
+            .map(|i| {
+                let a = a0 + (a1 - a0) * i as f32 / 24.0;
+                p + vec2(a.cos(), a.sin()) * r
+            })
+            .collect()
+    };
+    for (a0, a1, colour) in [(PI + gap, TAU - gap, new), (gap, PI - gap, current)] {
+        let points = arc(a0, a1);
+        painter.add(egui::Shape::line(points.clone(), Stroke::new(w + 1.5, Color32::from_black_alpha(150))));
+        painter.add(egui::Shape::line(points, Stroke::new(w, colour)));
+    }
+    Some(egui::CursorIcon::None)
+}
+
 fn begin_live_stroke(app: &PhotocraftApp) -> Option<LiveStroke> {
     static STROKES: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
     let st = app.session.active()?;
@@ -2002,7 +2046,8 @@ pub fn canvas_view(app: &mut PhotocraftApp, ui: &mut egui::Ui, idx: usize, rect:
                 t if resizing && crate::brush_resize::applies(t) => egui::CursorIcon::None,
                 // ⌥ turns a painting tool into the Eyedropper (`alt_eyedropper`).
                 t if app.alt_sampling || (app.drag.is_none() && alt_samples(t, crate::workspace_ui::sticky_mods(app, ui.input(|i| i.modifiers)))) => {
-                    egui::CursorIcon::Crosshair
+                    // While it samples, the comparison ring replaces the crosshair (#213).
+                    eyedropper_ring(app, &painter, &xf, p).unwrap_or(egui::CursorIcon::Crosshair)
                 }
                 t if t.is_brushlike() || t == Tool::QuickSelection => {
                     // Preferences › Cursors: brush tip outline (normal = the 50% contour, or
@@ -2058,6 +2103,8 @@ pub fn canvas_view(app: &mut PhotocraftApp, ui: &mut egui::Ui, idx: usize, rect:
                 {
                     egui::CursorIcon::Crosshair
                 }
+                // The Eyedropper: the comparison ring follows the pointer (#213).
+                Tool::Eyedropper => eyedropper_ring(app, &painter, &xf, p).unwrap_or(egui::CursorIcon::Crosshair),
                 Tool::Move => egui::CursorIcon::Move,
                 Tool::Hand => {
                     if response.dragged() {
@@ -3121,6 +3168,24 @@ mod tests {
             let r = xf.doc_rect(DRect::new(0, 0, 10, 10));
             assert!(r.width() > 0.0 && r.height() > 0.0);
         }
+    }
+
+    #[test]
+    fn eyedropper_ring_colors_pair_the_sampled_and_current_colours() {
+        let mut app = PhotocraftApp::new(photocraft_engine::Session::new(), Default::default());
+        app.run("file.new", json!({"width": 40, "height": 20, "background": "transparent"})).unwrap();
+        app.run("shape.create", json!({"kind": "rect", "rect": [0, 0, 20, 20], "fill": "#ff0000"})).unwrap();
+        app.run("tools.setColors", json!({"foreground": [0.0, 0.2, 1.0, 1.0]})).unwrap();
+        let (new, current) = super::eyedropper_ring_colors(&mut app, 10.0, 10.0).expect("over the red square");
+        let near = |c: egui::Color32, r: u8, g: u8, b: u8| {
+            let d = |a: u8, b: u8| i32::from(a).abs_diff(i32::from(b));
+            d(c.r(), r) <= 1 && d(c.g(), g) <= 1 && d(c.b(), b) <= 1
+        };
+        assert!(near(new, 255, 0, 0), "{new:?}");
+        assert!(near(current, 0, 51, 255), "{current:?}");
+        // Transparency and points outside the canvas have nothing to compare.
+        assert!(super::eyedropper_ring_colors(&mut app, 30.0, 10.0).is_none());
+        assert!(super::eyedropper_ring_colors(&mut app, -1.0, 10.0).is_none());
     }
 
     #[test]
