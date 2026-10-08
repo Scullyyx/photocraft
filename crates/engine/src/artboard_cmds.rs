@@ -101,7 +101,7 @@ fn background_param(p: &Value, cmd: &str) -> Result<Option<ArtboardBackground>> 
         Some("white") => Some(ArtboardBackground::White),
         Some("black") => Some(ArtboardBackground::Black),
         Some("transparent") => Some(ArtboardBackground::Transparent),
-        Some("custom" | "other") => Some(custom.unwrap_or(ArtboardBackground::White)),
+        Some("custom" | "other") => Some(custom.unwrap_or(ArtboardBackground::Custom(Color::WHITE))),
         Some(o) => return Err(bad(cmd, format!("unknown background `{o}` (white|black|transparent|custom)"))),
     })
 }
@@ -270,7 +270,10 @@ fn set_props(s: &mut Session, p: &Value) -> Result<Value> {
         let a = l.artboard_mut().ok_or(EngineError::NoLayer(id))?;
         a.rect = rect;
         if let Some(b) = background {
-            a.background = b;
+            a.background = match (b, &old.background) {
+                (ArtboardBackground::Custom(_), ArtboardBackground::Custom(old_c)) if p.get("color").is_none() => ArtboardBackground::Custom(*old_c),
+                (b, _) => b,
+            };
         }
         match preset {
             Some(pr) => a.preset = pr,

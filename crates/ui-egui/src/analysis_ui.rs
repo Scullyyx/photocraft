@@ -618,7 +618,7 @@ pub fn windows(app: &mut PhotocraftApp, ctx: &egui::Context) {
             }
             Some(("export", rows)) => {
                 let ids: Vec<u64> = rows.as_array().map(|a| a.iter().filter_map(Value::as_u64).collect()).unwrap_or_default();
-                if let Err(e) = export_log(app, (!ids.is_empty()).then_some(ids))
+                if let Err(e) = export_log(app, Some(ids))
                     && e != "cancelled"
                 {
                     app.ui.status = e;
@@ -1019,5 +1019,18 @@ pub(crate) mod tests {
         assert!(app.ui.analysis.measurement_log);
         assert_eq!(app.session.analysis.log.last().unwrap().values["source"], "Count Tool");
         render(&mut app, &ctx, windows);
+    }
+
+    #[test]
+    fn export_selected_with_empty_selection_exports_zero_rows() {
+        let (mut app, _ctx) = app();
+        app.services.pick_save = Some(Box::new(|_| Some("Measurements.csv".into())));
+        app.services.write = Some(Box::new(|_, _| Ok(())));
+        app.session.analysis.log.push(photocraft_engine::analysis_cmds::LogRow {
+            id: 1,
+            values: serde_json::Map::new(),
+        });
+        let res = export_log(&mut app, Some(vec![])).unwrap();
+        assert_eq!(res["rows"], 0);
     }
 }

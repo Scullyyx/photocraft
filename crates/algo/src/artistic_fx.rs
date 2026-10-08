@@ -477,7 +477,7 @@ fn glass_cell(e: &GalleryEffect) -> f32 {
 
 /// Total reach of a stack of effects.
 pub(crate) fn reach(effects: &[GalleryEffect]) -> i32 {
-    effects.iter().map(effect_reach).sum()
+    effects.iter().map(effect_reach).sum::<i32>().min(1024)
 }
 
 /// Runs a stack of effects over `out` (the source covers `out` grown by [`reach`]).
