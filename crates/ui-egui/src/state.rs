@@ -91,6 +91,7 @@ pub enum Tool {
     Patch,
     ContentAwareMove,
     CloneStamp,
+    PatternStamp,
     HistoryBrush,
     Blur,
     Sharpen,
@@ -114,7 +115,7 @@ pub enum Tool {
 }
 
 impl Tool {
-    pub const ALL: [Tool; 49] = [
+    pub const ALL: [Tool; 50] = [
         Tool::Move,
         Tool::RectMarquee,
         Tool::EllipseMarquee,
@@ -144,6 +145,7 @@ impl Tool {
         Tool::Patch,
         Tool::ContentAwareMove,
         Tool::CloneStamp,
+        Tool::PatternStamp,
         Tool::HistoryBrush,
         Tool::Blur,
         Tool::Sharpen,
@@ -199,6 +201,7 @@ impl Tool {
             Tool::Patch => "Patch Tool",
             Tool::ContentAwareMove => "Content-Aware Move Tool",
             Tool::CloneStamp => "Clone Stamp Tool",
+            Tool::PatternStamp => "Pattern Stamp Tool",
             Tool::HistoryBrush => "History Brush Tool",
             Tool::Blur => "Blur Tool",
             Tool::Sharpen => "Sharpen Tool",
@@ -235,6 +238,7 @@ impl Tool {
                 | Tool::SpotHealing
                 | Tool::Healing
                 | Tool::CloneStamp
+                | Tool::PatternStamp
                 | Tool::HistoryBrush
                 | Tool::Blur
                 | Tool::Sharpen
@@ -260,7 +264,7 @@ impl Tool {
             Tool::Hand => 'H',
             Tool::Zoom => 'Z',
             Tool::SpotHealing | Tool::Healing | Tool::Patch | Tool::ContentAwareMove => 'J',
-            Tool::CloneStamp => 'S',
+            Tool::CloneStamp | Tool::PatternStamp => 'S',
             Tool::HistoryBrush => 'Y',
             Tool::Blur | Tool::Sharpen | Tool::Smudge => '\0',
             Tool::Dodge | Tool::Burn | Tool::Sponge => 'O',
@@ -413,6 +417,14 @@ pub struct ToolOptions {
     pub type_align: String,
     /// Clone Stamp / Healing Brush.
     pub clone_aligned: bool,
+    /// Pattern Stamp: lock the tile origin in document space across strokes.
+    pub pattern_stamp_aligned: bool,
+    /// Pattern Stamp: jitter each dab's phase (seeded, replayable).
+    pub pattern_stamp_impressionist: bool,
+    /// Pattern Stamp scale %, 1..1000 (100 = the tile's native size).
+    pub pattern_stamp_scale: f32,
+    /// Pattern Stamp rotation in degrees (counter-clockwise).
+    pub pattern_stamp_angle: f32,
     /// current | currentAndBelow | all
     pub clone_sample: String,
     /// Spot Healing: contentAware | createTexture | proximityMatch
@@ -526,6 +538,10 @@ impl Default for ToolOptions {
             type_aa: "sharp".into(),
             type_align: "left".into(),
             clone_aligned: true,
+            pattern_stamp_aligned: true,
+            pattern_stamp_impressionist: false,
+            pattern_stamp_scale: 100.0,
+            pattern_stamp_angle: 0.0,
             clone_sample: "current".into(),
             spot_type: "contentAware".into(),
             patch_mode: "source".into(),
@@ -716,6 +732,9 @@ pub struct UiState {
     pub clone_source: Option<[f64; 2]>,
     #[serde(default)]
     pub clone_offset: Option<[f64; 2]>,
+    /// Pattern Stamp aligned origin in document pixels, kept across strokes.
+    #[serde(default)]
+    pub pattern_stamp_phase: Option<[f32; 2]>,
     /// Painting targets the active layer's mask instead of its pixels.
     #[serde(default)]
     pub mask_target: bool,
@@ -857,6 +876,7 @@ impl Default for UiState {
             tool_smoothing: Vec::new(),
             clone_source: None,
             clone_offset: None,
+            pattern_stamp_phase: None,
             extras: Extras::default(),
             view: Default::default(),
             actions: Default::default(),
@@ -942,6 +962,8 @@ mod tests {
         assert_eq!(Tool::from_name("Eraser Tool"), Some(Tool::Eraser));
         assert_eq!(Tool::from_name("mixerBrush"), Some(Tool::MixerBrush));
         assert_eq!(Tool::from_name("Mixer Brush Tool"), Some(Tool::MixerBrush));
+        assert_eq!(Tool::from_name("patternStamp"), Some(Tool::PatternStamp));
+        assert_eq!(Tool::from_name("Pattern Stamp Tool"), Some(Tool::PatternStamp));
         assert_eq!(Tool::from_name("nope"), None);
     }
 
