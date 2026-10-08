@@ -12,7 +12,7 @@
 //! - [`LutLibrary::list`] walks the library (no parsing) and returns the packs with their LUTs.
 //! - [`LutLibrary::remove_pack`] deletes one pack.
 //! - Favourites and recently used LUTs are kept in `.state.json` ([`state`]), file headers can be
-//!   read cheaply ([`meta`]), small previews rendered ([`thumb`]), and parsed tables are cached so
+//!   read cheaply ([`meta`]), and parsed tables are cached so
 //!   previewing many LUTs does not parse the same file twice ([`cache`]).
 //!
 //! Names that reach the file system are always rebuilt from a restricted character set
@@ -29,7 +29,6 @@ pub mod cache;
 mod hashes;
 pub mod meta;
 pub mod state;
-pub mod thumb;
 mod zip;
 
 /// File extensions that count as a LUT (compared case-insensitively).

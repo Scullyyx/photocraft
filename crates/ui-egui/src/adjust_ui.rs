@@ -80,14 +80,14 @@ pub fn selective_color_editor(app: &mut PhotocraftApp, ui: &mut egui::Ui, id: La
 
 pub fn color_lookup_editor(app: &mut PhotocraftApp, ui: &mut egui::Ui, id: LayerId, adj: &Adjustment) {
     let t = Tokens::get(ui.ctx());
-    let Adjustment::ColorLookup { name, lut, size, tetrahedral, dither } = adj else {
+    let Adjustment::ColorLookup { name, lut, tetrahedral, dither, .. } = adj else {
         return;
     };
     let builtins = photocraft_engine::adjust_cmds::LOOKS;
     let look = if lut.is_none() { "none".to_string() } else { builtins.iter().find(|b| b.1 == name).map_or_else(|| "custom".to_string(), |b| b.0.to_string()) };
     let mut params: Option<Value> = None;
     ui.label(egui::RichText::new(tl!("3D LUT File")).color(t.text_dim));
-    let current = crate::lut_library_ui::Current { look: &look, name, size: *size };
+    let current = crate::lut_library_ui::Current { look: &look, name };
     match crate::lut_library_ui::browser(app, ui, id, &current, &builtins) {
         Some(crate::lut_library_ui::Pick::Look(look)) => params = Some(json!({"lut": look})),
         Some(crate::lut_library_ui::Pick::File(file)) => params = Some(json!({"file": file})),

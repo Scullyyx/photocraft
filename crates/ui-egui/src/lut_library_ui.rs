@@ -1,8 +1,8 @@
 //! Color Lookup's LUT browser: one list that replaces the old "3D LUT File" dropdown. It holds
 //! "None", Favorites, Recent, the built-in looks and every installed pack
 //! (`photocraft_engine::lut_library`) as collapsible sections, with a nested section for each
-//! folder inside a pack. Rows show the file name, a preview swatch of what the LUT does to a
-//! sample picture, its size, and a star.
+//! folder inside a pack. Rows show the file name only (long names end in an ellipsis; the tooltip has
+//! the full path and the file's details) and a star.
 //!
 //! - The list fills the Properties group (it grows and shrinks with the window).
 //! - Up / Down move a cursor through the LUTs (and scroll to it) while the list or the filter box
@@ -20,7 +20,7 @@
 mod draw;
 mod install;
 mod rows;
-mod thumbs;
+mod scans;
 
 use self::draw::{chevron, star};
 use self::install::install_dialog;
@@ -35,14 +35,13 @@ use photocraft_engine::lut_library::LutLibrary;
 use serde_json::{Value, json};
 
 use self::rows::{Row, Source};
-use self::thumbs::Thumbs;
+use self::scans::Scans;
 use crate::PhotocraftApp;
 use crate::theme::Tokens;
 use crate::widgets;
 
 const ROW_H: f32 = 28.0;
 const INDENT: f32 = 14.0;
-const THUMB: egui::Vec2 = vec2(40.0, 24.0);
 const MIN_LIST_H: f32 = 112.0;
 /// Room the editor needs below the list (path row, Trilinear, Dither, visibility, Reset).
 const BELOW_LIST: f32 = 190.0;
@@ -50,8 +49,6 @@ const BELOW_LIST: f32 = 190.0;
 const ABOVE_EDITOR: f32 = 44.0;
 const STAR_ZONE: f32 = 26.0;
 const REMOVE_ZONE: f32 = 92.0;
-/// The wider hit area while a pack is flagged as a duplicate (its label is longer).
-const REMOVE_ZONE_DUP: f32 = 190.0;
 const PREVIEW_AFTER: f64 = 0.15;
 
 /// What the browser chose.
@@ -77,7 +74,6 @@ pub struct Current<'a> {
     pub look: &'a str,
     /// The loaded table's name.
     pub name: &'a str,
-    pub size: u32,
 }
 
 fn memory<T: Clone + Send + Sync + 'static>(ui: &Ui, id: Id) -> Option<T> {
@@ -105,13 +101,22 @@ fn pick_of(row: &Row, src: &Source, lib: Option<&LutLibrary>) -> Option<Pick> {
     }
 }
 
+fn dup_label(of: &str) -> String {
+    format!("{} {of}", tl!("Duplicate of"))
+}
+
+/// Width the "Duplicate of …" label of the pack `name` needs on the right of its header.
+fn dup_zone(ctx: &egui::Context, src: &Source, name: &str) -> f32 {
+    let Some(of) = src.redundant.get(name) else { return REMOVE_ZONE };
+    let job = egui::text::LayoutJob::simple_singleline(dup_label(of), FontId::proportional(12.0), egui::Color32::WHITE);
+    ctx.fonts_mut(|f| f.layout_job(job)).size().x + 16.0
+}
+
 /// The browser. `layer` keys the per-layer state; `builtins` are `(id, label)`.
 pub fn browser(app: &mut PhotocraftApp, ui: &mut Ui, layer: LayerId, cur: &Current, builtins: &[(&str, &str)]) -> Option<Pick> {
     let t = Tokens::get(ui.ctx());
     let ctx = ui.ctx().clone();
-    let thumbs = Thumbs::get(&ctx);
-    thumbs.collect(&ctx);
-    let mut header_budget = Thumbs::header_budget();
+    let scans = Scans::get(&ctx);
     let has_library = app.session.lut_library.is_some();
 
     // Files added or removed by hand show up without a restart.
@@ -160,7 +165,7 @@ pub fn browser(app: &mut PhotocraftApp, ui: &mut Ui, layer: LayerId, cur: &Curre
         .inner;
 
     let lib = app.session.lut_library.as_ref();
-    let redundant = lib.map(|l| thumbs.redundant(&ctx, l.root(), l.rev)).unwrap_or_default();
+    let redundant = lib.map(|l| scans.redundant(&ctx, l.root(), l.rev)).unwrap_or_default();
     let (favorites, recent): (Vec<String>, Vec<String>) = lib.map(|l| (l.favorites().to_vec(), l.recent().to_vec())).unwrap_or_default();
     let empty = (std::sync::Arc::new(Vec::new()), std::sync::Arc::new(HashMap::new()));
     let (packs, ids) = listing.as_ref().map_or((&empty.0, &empty.1), |l| (&l.packs, &l.ids));
@@ -265,7 +270,7 @@ pub fn browser(app: &mut PhotocraftApp, ui: &mut Ui, layer: LayerId, cur: &Curre
                     }
                     let (text, depth) = match row {
                         Row::None => (tl!("None").to_string(), 0),
-                        Row::Custom => (format!("{} ({}³)", cur.name, cur.size), 0),
+                        Row::Custom => (cur.name.to_string(), 0),
                         Row::Look(k) => (tl!(builtins.get(*k).map_or("", |b| b.1)).to_string(), 1),
                         Row::Lut { pack, idx, depth } => {
                             (src.packs.get(*pack).and_then(|p| p.info.luts.get(*idx)).map(|l| l.name.clone()).unwrap_or_default(), *depth)
@@ -274,32 +279,28 @@ pub fn browser(app: &mut PhotocraftApp, ui: &mut Ui, layer: LayerId, cur: &Curre
                     };
                     let mut x = rect.left() + 8.0 + f32::from(depth) * INDENT;
                     let mid = rect.center().y;
-                    // Preview swatch for LUT and built-in rows.
-                    let swatch = match row {
-                        Row::Lut { pack, idx, .. } => src.packs.get(*pack).and_then(|p| {
-                            p.info.luts.get(*idx).map(|l| (format!("{}/{}@{}", p.info.name, l.file, l.mtime), lib.map(|lb| lb.path_of(&p.info.name, &l.file))))
-                        }),
-                        Row::Look(k) => builtins.get(*k).map(|(id, _)| (format!("look:{id}"), None)),
-                        _ => None,
-                    };
-                    if let Some((tkey, path)) = swatch {
-                        let r = Rect::from_min_size(Pos2::new(x, mid - THUMB.y / 2.0), THUMB);
-                        match thumbs.texture(&ctx, &tkey, path) {
-                            Some(tex) => {
-                                ui.painter().image(tex.id(), r, Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0)), egui::Color32::WHITE);
-                            }
-                            None => {
-                                ui.painter().rect_filled(r, 2.0, t.field);
-                            }
-                        }
-                        x += THUMB.x + 8.0;
-                    }
                     if let Row::Header { open, .. } = row {
                         chevron(ui, Pos2::new(x + 4.0, mid), *open, t.text_dim);
                         x += 14.0;
                     }
                     let is_header = matches!(row, Row::Header { .. });
-                    ui.painter().text(Pos2::new(x, mid), Align2::LEFT_CENTER, &text, FontId::proportional(13.0), if is_header { t.text_dim } else { t.text });
+                    // Leave room on the right for the star or the pack's label; long names end in "…".
+                    let reserve = match row {
+                        Row::Lut { .. } => STAR_ZONE + 6.0,
+                        Row::Header { pack: Some(name), .. } if src.redundant.contains_key(name) => dup_zone(&ctx, &src, name),
+                        Row::Header { pack: Some(_), .. } => REMOVE_ZONE + 8.0,
+                        _ => 8.0,
+                    };
+                    let mut job =
+                        egui::text::LayoutJob::simple_singleline(text.clone(), FontId::proportional(13.0), if is_header { t.text_dim } else { t.text });
+                    job.wrap = egui::text::TextWrapping {
+                        max_width: (rect.right() - reserve - x).max(24.0),
+                        max_rows: 1,
+                        break_anywhere: true,
+                        overflow_character: Some('…'),
+                    };
+                    let galley = ctx.fonts_mut(|f| f.layout_job(job));
+                    ui.painter().galley(Pos2::new(x, mid - galley.size().y / 2.0), galley, t.text);
                     let info = if is_header {
                         WidgetInfo::labeled(WidgetType::CollapsingHeader, true, &text)
                     } else {
@@ -322,15 +323,6 @@ pub fn browser(app: &mut PhotocraftApp, ui: &mut Ui, layer: LayerId, cur: &Curre
                                     .into_owned()
                                 })
                                 .unwrap_or_default();
-                            let header = thumbs.header(&path, &mut header_budget);
-                            let right = rect.right() - STAR_ZONE;
-                            if let Some(h) = &header
-                                && h.size > 0
-                            {
-                                let label =
-                                    if h.kind == photocraft_engine::lut_library::meta::Kind::Cube1d { "1D".to_string() } else { format!("{}³", h.size) };
-                                ui.painter().text(Pos2::new(right - 4.0, mid), Align2::RIGHT_CENTER, label, FontId::proportional(11.0), t.text_faint);
-                            }
                             let fav = favorites.contains(&id);
                             if fav || resp.hovered() {
                                 star(ui, Pos2::new(rect.right() - STAR_ZONE / 2.0 - 2.0, mid), fav, if fav { t.accent_text } else { t.text_faint });
@@ -339,7 +331,7 @@ pub fn browser(app: &mut PhotocraftApp, ui: &mut Ui, layer: LayerId, cur: &Curre
                             let tip_id = id.clone();
                             resp.clone().on_hover_ui(|ui| {
                                 ui.label(tip_id);
-                                if let Some(h) = &header {
+                                if let Some(h) = scans.header(&path) {
                                     let kind = match h.kind {
                                         photocraft_engine::lut_library::meta::Kind::Cube3d => "3D cube",
                                         photocraft_engine::lut_library::meta::Kind::Cube1d => "1D cube",
@@ -366,12 +358,12 @@ pub fn browser(app: &mut PhotocraftApp, ui: &mut Ui, layer: LayerId, cur: &Curre
                             } else if resp.hovered() {
                                 Some((tl!("Remove Pack").to_string(), t.text_faint))
                             } else {
-                                dup.map(|of| (format!("{} {of}", tl!("Duplicate of")), t.accent_text))
+                                dup.map(|of| (dup_label(of), t.accent_text))
                             };
                             if let Some((label, c)) = label {
                                 ui.painter().text(Pos2::new(rect.right() - 8.0, mid), Align2::RIGHT_CENTER, label, FontId::proportional(12.0), c);
                             }
-                            let zone = if dup.is_some() { REMOVE_ZONE_DUP } else { REMOVE_ZONE };
+                            let zone = if dup.is_some() { dup_zone(&ctx, &src, name) } else { REMOVE_ZONE };
                             in_remove = resp.interact_pointer_pos().is_some_and(|p| p.x > rect.right() - zone);
                         }
                         _ => {}
