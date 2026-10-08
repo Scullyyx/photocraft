@@ -301,28 +301,28 @@ mod tests {
             let mut session = Session::new();
             session.execute("tools.setBrush", json!({"reset": true, "brush": {"size": 6.0, "spacingEnabled": true}})).unwrap();
             let render = |brush: &BrushSettings| stroke_texture(&ctx, "settings-strip", brush, w, h, Color32::WHITE);
-            let on = render(&session.brush);
-            let on_pixels = preview_pixels(&session.brush, w, h, [1.0; 4]);
-            assert_eq!(render(&session.brush).id(), on.id());
+            let on = render(&session.tools.brush);
+            let on_pixels = preview_pixels(&session.tools.brush, w, h, [1.0; 4]);
+            assert_eq!(render(&session.tools.brush).id(), on.id());
             assert_eq!(render_count(&ctx), 1);
 
             session.execute("tools.setBrush", json!({"brush": {"spacingEnabled": false}})).unwrap();
-            assert_ne!(preview_pixels(&session.brush, w, h, [1.0; 4]), on_pixels);
-            let off = render(&session.brush);
+            assert_ne!(preview_pixels(&session.tools.brush, w, h, [1.0; 4]), on_pixels);
+            let off = render(&session.tools.brush);
             assert_ne!(off.id(), on.id(), "spacing toggle must refresh the {w}x{h} preview");
             assert_eq!(render_count(&ctx), 2);
-            assert_eq!(render(&session.brush).id(), off.id());
+            assert_eq!(render(&session.tools.brush).id(), off.id());
             assert_eq!(render_count(&ctx), 2);
 
             session.execute("tools.setBrush", json!({"brush": {"spacingEnabled": true}})).unwrap();
-            let restored = render(&session.brush);
+            let restored = render(&session.tools.brush);
             assert_ne!(restored.id(), off.id());
             assert_eq!(render_count(&ctx), 3);
-            assert_eq!(render(&session.brush).id(), restored.id());
+            assert_eq!(render(&session.tools.brush).id(), restored.id());
             assert_eq!(render_count(&ctx), 3);
 
             session.execute("tools.setBrush", json!({"brush": {"size": 7.0}})).unwrap();
-            assert_ne!(render(&session.brush).id(), restored.id());
+            assert_ne!(render(&session.tools.brush).id(), restored.id());
             assert_eq!(render_count(&ctx), 4);
             assert_eq!(with_cache(&ctx, |cache| cache.len()), 1);
         }
