@@ -326,6 +326,20 @@ fn quick_select_grows_without_leaking() {
     assert!(inside as f32 > 0.97 * (58.0 * 100.0), "only {inside} pixels selected");
 }
 
+/// A stroke point far off the canvas (its bounding box past `i32::MAX`) misses the canvas
+/// instead of overflowing (#964).
+#[test]
+fn quick_select_far_point_misses_without_overflow() {
+    let img = two_regions(140, 100);
+    let s = ImageSampler { img: &img, origin: (0, 0) };
+    let canvas = Rect::new(0, 0, 140, 100);
+    for p in [(3.0e9, 0.0), (0.0, 3.0e9), (f32::MAX, f32::MAX), (-3.0e9, 0.0)] {
+        assert!(quick::quick_select(&s, canvas, &[p], 30.0, quick::WORK_PX).is_none(), "{p:?}");
+    }
+    // A far point alongside one on the canvas still selects from the near one.
+    assert!(quick::quick_select(&s, canvas, &[(20.0, 50.0), (3.0e9, 50.0)], 8.0, quick::WORK_PX).is_some());
+}
+
 #[test]
 fn quick_select_stops_at_thin_line() {
     // Same colour on both sides of a dark 2-pixel line.

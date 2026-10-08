@@ -51,7 +51,8 @@ pub fn quick_select(sampler: &dyn Sampler, canvas: Rect, points: &[(f32, f32)], 
         x1 = x1.max(x + r);
         y1 = y1.max(y + r);
     }
-    let bbox = Rect::new(x0.floor() as i32, y0.floor() as i32, x1.ceil() as i32 + 1, y1.ceil() as i32 + 1).intersect(&canvas);
+    // `as i32` saturates for far points, so the `+ 1` must not overflow (#964).
+    let bbox = Rect::new(x0.floor() as i32, y0.floor() as i32, (x1.ceil() as i32).saturating_add(1), (y1.ceil() as i32).saturating_add(1)).intersect(&canvas);
     if bbox.is_empty() {
         return None;
     }
