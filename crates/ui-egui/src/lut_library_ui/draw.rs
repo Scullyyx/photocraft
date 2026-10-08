@@ -21,7 +21,16 @@ pub(super) fn star(ui: &Ui, at: Pos2, on: bool, color: egui::Color32) {
         })
         .collect();
     if on {
-        ui.painter().add(Shape::convex_polygon(pts, color, egui::Stroke::NONE));
+        // A star is not convex, so fill it as a fan of triangles from the centre.
+        let mut mesh = egui::Mesh::default();
+        mesh.colored_vertex(at, color);
+        for p in &pts {
+            mesh.colored_vertex(*p, color);
+        }
+        for i in 0..pts.len() as u32 {
+            mesh.add_triangle(0, 1 + i, 1 + (i + 1) % pts.len() as u32);
+        }
+        ui.painter().add(Shape::mesh(mesh));
     } else {
         ui.painter().add(Shape::closed_line(pts, egui::Stroke::new(1.0, color)));
     }
