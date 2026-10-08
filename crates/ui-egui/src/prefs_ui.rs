@@ -161,9 +161,13 @@ fn display_scale(pref: prefs::UiScale, native: Option<f32>, monitor_px: Option<e
     let native = native.filter(|v| v.is_finite() && *v > 0.0).unwrap_or(1.0);
     match pref {
         prefs::UiScale::Auto => {
-            // A 4K display needs at least 200%; preserve larger system scales.
+            // Follow the system's scale, fractional ones included (125%, 150%, 175%: #1072).
+            // Only when the system reports no scaling at all (100%) does a 4K display fall back
+            // to 200%, since unscaled 4K controls are unreadably small (#225). Overriding a scale
+            // the user picked in their desktop settings left only "too small" or "too big".
+            let unscaled = (native - 1.0).abs() < 0.01;
             let is_4k = monitor_px.is_some_and(|s| s.x.is_finite() && s.y.is_finite() && s.x.min(s.y) >= 2160.0 && s.x.max(s.y) >= 3840.0);
-            if is_4k { native.max(2.0) } else { native }
+            if unscaled && is_4k { 2.0 } else { native }
         }
         fixed => fixed.name().parse::<f32>().map_or(1.0, |pct| pct / 100.0),
     }
@@ -756,6 +760,13 @@ pub fn body(app: &mut PhotocraftApp, ui: &mut egui::Ui, f: &mut Map<String, Valu
 }
 
 fn humanize(key: &str) -> String {
+    // These controls appear only for WebP, so reuse the existing translated labels.
+    if key == "webpLossless" {
+        return "Lossless".into();
+    }
+    if key == "webpQuality" {
+        return "Quality".into();
+    }
     let mut s = String::new();
     for (i, ch) in key.chars().enumerate() {
         if i == 0 {
@@ -940,6 +951,17 @@ fn has_visible_fields(values: &Value, section: &str) -> bool {
     values.get(section).and_then(Value::as_object).is_some_and(|o| o.keys().any(|k| !prefs::is_hidden(&format!("{section}.{k}"))))
 }
 
+/// JPEG and WebP have independent settings; unrelated format controls stay out of view.
+fn export_field_visible(obj: &Map<String, Value>, key: &str) -> bool {
+    let format = obj.get("quickExportFormat").and_then(Value::as_str).unwrap_or("png");
+    match key {
+        "jpegQuality" => format == "jpg",
+        "webpLossless" => format == "webp",
+        "webpQuality" => format == "webp" && obj.get("webpLossless").and_then(Value::as_bool) != Some(true),
+        _ => true,
+    }
+}
+
 /// Generic editor for a section's fields: checkboxes, dropdowns for choices, colour swatches,
 /// number fields with the preference's range, text fields.
 fn section_fields(ui: &mut egui::Ui, section: &str, obj: &mut Map<String, Value>, order: &[String], lang: crate::i18n::Lang) {
@@ -954,7 +976,10 @@ fn section_fields(ui: &mut egui::Ui, section: &str, obj: &mut Map<String, Value>
             let path = format!("{section}.{k}");
             // Settings nothing reads yet stay out of the dialog (issue #204); their stored values
             // pass through untouched.
-            if prefs::is_hidden(&path) || (section == "performance" && matches!(k.as_str(), "useGpu" | "gpuBackend" | "renderingMode")) {
+            if prefs::is_hidden(&path)
+                || (section == "performance" && matches!(k.as_str(), "useGpu" | "gpuBackend" | "renderingMode"))
+                || (section == "export" && !export_field_visible(obj, &k))
+            {
                 continue;
             }
             let v = obj.get(&k).cloned().unwrap_or(Value::Null);
@@ -1432,6 +1457,29 @@ mod tests {
     }
 
     #[test]
+    fn quick_export_controls_match_selected_format() {
+        let mut obj = serde_json::to_value(photocraft_engine::prefs::Export::default()).unwrap().as_object().unwrap().clone();
+        assert!(!export_field_visible(&obj, "jpegQuality"));
+        assert!(!export_field_visible(&obj, "webpLossless"));
+        assert!(!export_field_visible(&obj, "webpQuality"));
+
+        obj.insert("quickExportFormat".into(), json!("jpg"));
+        assert!(export_field_visible(&obj, "jpegQuality"));
+        assert!(!export_field_visible(&obj, "webpLossless"));
+        assert!(!export_field_visible(&obj, "webpQuality"));
+
+        obj.insert("quickExportFormat".into(), json!("webp"));
+        assert!(!export_field_visible(&obj, "jpegQuality"));
+        assert!(export_field_visible(&obj, "webpLossless"));
+        assert!(!export_field_visible(&obj, "webpQuality"), "lossless WebP does not have a quality setting");
+
+        obj.insert("webpLossless".into(), json!(false));
+        assert!(export_field_visible(&obj, "webpQuality"));
+        assert_eq!(humanize("webpLossless"), "Lossless");
+        assert_eq!(humanize("webpQuality"), "Quality");
+    }
+
+    #[test]
     fn rendering_mode_display_respects_explicit_mode_and_legacy_disable() {
         let legacy = serde_json::json!({"useGpu": false, "gpuBackend": "auto"});
         assert_eq!(super::rendering_mode_value(legacy.as_object().unwrap()), "cpu");
@@ -1597,12 +1645,20 @@ mod tests {
     }
 
     #[test]
-    fn auto_scale_detects_4k_and_preserves_larger_system_dpi() {
+    fn auto_scale_detects_4k_and_preserves_system_scale() {
         use prefs::UiScale::Auto;
         for size in [vec2(3840.0, 2160.0), vec2(4096.0, 2160.0), vec2(2160.0, 3840.0)] {
             assert_eq!(display_scale(Auto, Some(1.0), Some(size)), 2.0);
-            for dpi in [1.25, 1.5, 2.0] {
-                assert_eq!(display_scale(Auto, Some(dpi), Some(size)), 2.0);
+            // A fractional system scale is the user's choice and is kept as is (#1072).
+            for dpi in [1.25, 1.5, 1.75, 2.0, 2.5] {
+                assert_eq!(display_scale(Auto, Some(dpi), Some(size)), dpi);
+            }
+        }
+        // Below 100% is a system choice too, even on 4K.
+        assert_eq!(display_scale(Auto, Some(0.75), Some(vec2(3840.0, 2160.0))), 0.75);
+        for size in [vec2(1920.0, 1080.0), vec2(2560.0, 1440.0)] {
+            for dpi in [1.25, 1.5, 1.75] {
+                assert_eq!(display_scale(Auto, Some(dpi), Some(size)), dpi);
             }
         }
         assert_eq!(display_scale(Auto, Some(3.0), Some(vec2(3840.0, 2160.0))), 3.0);
@@ -1636,7 +1692,10 @@ mod tests {
                 step(vec2(3840.0, 2160.0), 1.0, 2.0);
             }
             step(vec2(1920.0, 1080.0), 1.0, 1.0);
-            step(vec2(3840.0, 2160.0), 1.5, 2.0);
+            step(vec2(3840.0, 2160.0), 1.5, 1.5);
+            step(vec2(3840.0, 2160.0), 1.25, 1.25);
+            step(vec2(2560.0, 1440.0), 1.75, 1.75);
+            step(vec2(3840.0, 2160.0), 1.0, 2.0);
         }
         for (pref, expected) in [("200", 2.0), ("125", 1.25), ("150", 1.5), ("100", 1.0), ("auto", 1.5)] {
             app.run("prefs.set", json!({"values": {"interface.uiScale": pref}})).unwrap();
