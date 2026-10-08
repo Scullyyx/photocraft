@@ -240,3 +240,43 @@ fn lasso_tools_apply_the_options_bar_feather() {
     drag(&mut app, Tool::Patch);
     assert_eq!((coverage(&app, 37), coverage(&app, 41)), (0.0, 1.0), "patch: a hard edge");
 }
+
+fn polygon_app() -> PhotocraftApp {
+    let mut app = PhotocraftApp::new(photocraft_engine::Session::new(), crate::Services::default());
+    app.run("file.new", json!({"width": 400, "height": 300, "background": "transparent"})).unwrap();
+    app.sync_views();
+    app.ui.extras.snap = false;
+    app.ui.tool = Tool::PolygonLasso;
+    app
+}
+
+fn ev(app: &mut PhotocraftApp, kind: &str, x: f64, y: f64, m: Modifiers) {
+    use crate::canvas::{ToolEvent, tool_event};
+    let e = match kind {
+        "down" => ToolEvent::Down { x, y, pressure: 1.0 },
+        "up" => ToolEvent::Up { x, y },
+        _ => ToolEvent::Move { x, y, pressure: 1.0 },
+    };
+    tool_event(app, e, m);
+}
+
+/// ⌥ held: a drag draws freehand into the polygon; releasing ⌥ goes back to straight segments,
+/// and the polygon stays open (a new selection, even though ⌥ was held at the first click).
+#[test]
+fn alt_drags_draw_freehand_and_releasing_alt_keeps_the_polygon_open() {
+    let mut app = polygon_app();
+    let alt = Modifiers::ALT;
+    ev(&mut app, "down", 50.0, 50.0, alt);
+    for x in [70.0, 90.0, 110.0, 130.0, 150.0] {
+        ev(&mut app, "move", x, 50.0 + (x - 50.0) / 4.0, alt);
+    }
+    ev(&mut app, "up", 150.0, 75.0, alt);
+    assert!(app.ui.polygon.len() >= 6, "freehand points: {}", app.ui.polygon.len());
+    assert_eq!(app.ui.polygon_mode, "replace", "⌥ with nothing selected doesn't subtract");
+    // ⌥ released: clicks add straight segments, nothing closes.
+    ev(&mut app, "down", 150.0, 200.0, Modifiers::NONE);
+    ev(&mut app, "up", 150.0, 200.0, Modifiers::NONE);
+    assert!(!app.ui.polygon.is_empty() && app.session.active().unwrap().doc.selection.is_none());
+    crate::canvas::commit_polygon(&mut app);
+    assert!(app.session.active().unwrap().doc.selection.as_ref().unwrap().sample_channel(110, 100, 0) > 0.5);
+}
