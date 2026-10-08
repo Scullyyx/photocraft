@@ -2084,6 +2084,7 @@ cameraRaw	Color	カラー
 	Frequency	頻度
 	Use tablet pressure to change pen width	タブレットの筆圧を使用してペンの幅を変更
 
+
 # About ▸ Contributors / Models (credits, craftrules standards/contributors.md)
 	About	バージョン情報
 	Contributors	コントリビューター
@@ -2116,3 +2117,9 @@ cameraRaw	Color	カラー
 	% of all commits	全コミットに占める割合 (%)
 	Lines +/−	行数 +/−
 	@{login}: {prs} PRs, {commits} commits, +{added} / −{deleted} lines (Δ {delta}), +{binAdded} / −{binDeleted} binary assets, {first} – {last}	@{login}: PR {prs} 件、コミット {commits} 件、行 +{added} / −{deleted} (Δ {delta})、バイナリ +{binAdded} / −{binDeleted}、{first} – {last}
+
+	Red Eye Tool	赤目ツール
+	Red Eye	赤目
+	Pupil Size	瞳のサイズ
+	Darken Amount	暗くする量
+	Click a red pupil to neutralize it	赤い瞳をクリックして補正します

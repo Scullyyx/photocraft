@@ -2376,6 +2376,7 @@ cameraRaw	Roughness	Неровность
 	Frequency	Частота
 	Use tablet pressure to change pen width	Использовать нажим планшета для изменения ширины пера
 
+
 # About ▸ Contributors / Models (credits, craftrules standards/contributors.md)
 	About	О программе
 	Contributors	Участники
@@ -2407,3 +2408,8 @@ cameraRaw	Roughness	Неровность
 	% of all commits	% от всех коммитов
 	Lines +/−	Строки +/−
 	@{login}: {prs} PRs, {commits} commits, +{added} / −{deleted} lines (Δ {delta}), +{binAdded} / −{binDeleted} binary assets, {first} – {last}	@{login}: PR: {prs}, коммиты: {commits}, строки +{added} / −{deleted} (Δ {delta}), двоичные файлы +{binAdded} / −{binDeleted}, {first} – {last}
+
+	Red Eye Tool	Инструмент «Красные глаза»
+	Pupil Size	Размер зрачка
+	Darken Amount	Степень затемнения
+	Click a red pupil to neutralize it	Щёлкните по красному зрачку, чтобы убрать блик
