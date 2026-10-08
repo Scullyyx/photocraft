@@ -606,9 +606,16 @@ pub fn write(adj: &Adjustment) -> Vec<([u8; 4], Vec<u8>)> {
             // identity, so it is written as a 2³ identity cube rather than dropped.
             let n = *size as usize;
             let (file, dither) = match lut {
-                Some(table) if (2..=256).contains(&n) && table.len() >= n * n * n * 3 => {
-                    (photocraft_cms::lutfile::LutFile { title: String::new(), size: n, data: table[..n * n * n * 3].to_vec() }, *dither)
-                }
+                Some(table) if (2..=256).contains(&n) && table.len() >= n * n * n * 3 => (
+                    photocraft_cms::lutfile::LutFile {
+                        title: String::new(),
+                        size: n,
+                        data: table[..n * n * n * 3].to_vec(),
+                        domain_min: [0.0; 3],
+                        domain_max: [1.0; 3],
+                    },
+                    *dither,
+                ),
                 _ => (photocraft_cms::lutfile::LutFile { title: String::new(), ..photocraft_cms::lutfile::LutFile::identity(2) }, false),
             };
             let en =
