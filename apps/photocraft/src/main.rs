@@ -228,6 +228,18 @@ fn main() -> eframe::Result {
     // Brush presets load in the background; the app attaches them when they arrive.
     let presets = services::presets_dir().map(photocraft_engine::preset_store::open_dir_async);
     let mut options = native_options();
+    // Linux: Preferences › Performance › Display server = X11 runs the window through XWayland,
+    // where file drops work (#386). Only with an X server to talk to; otherwise winit's default.
+    #[cfg(target_os = "linux")]
+    if gpu_startup::read_display_server(services::prefs_file().as_deref()) == photocraft_engine::prefs::LinuxDisplayServer::X11
+        && std::env::var_os("DISPLAY").is_some_and(|d| !d.is_empty())
+    {
+        use winit::platform::x11::EventLoopBuilderExtX11;
+        options.event_loop_builder = Some(Box::new(|builder| {
+            builder.with_x11();
+        }));
+        log::info!("display server: X11 (XWayland when on Wayland), per preferences");
+    }
     // eframe restores the saved window layout before our code runs; drop values that would crash it.
     ui_state::sanitize(options.persistence_path.as_deref());
     // Crash-safe GPU startup (#4): pick the backend (a marker left by a start that died in the

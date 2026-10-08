@@ -1382,7 +1382,7 @@
 	Drop an image or PSD anywhere to open it.	Перетащите изображение или PSD в любое место окна, чтобы открыть.
 	Use File › Open to open an image.	Чтобы открыть изображение, выберите Файл › Открыть.
 	Native file drag-and-drop is unavailable	Нативное перетаскивание файлов в Wayland недоступно
-	Native file drag-and-drop is not supported on Wayland yet. Use File › Open, or run PhotoCraft under XWayland with `WAYLAND_DISPLAY= photocraft`.	Нативное перетаскивание файлов в Wayland пока не поддерживается. Откройте файл через Файл › Открыть или запустите PhotoCraft в XWayland с `WAYLAND_DISPLAY= photocraft`.
+	Native file drag-and-drop is not supported on Wayland yet. Use File › Open, or set Preferences › Performance › Linux display server to X11 and restart PhotoCraft (it then runs through XWayland).	Нативное перетаскивание файлов в Wayland пока не поддерживается. Используйте Файл › Открыть или выберите в Настройки › Производительность › Дисплейный сервер Linux значение X11 и перезапустите PhotoCraft (он будет работать через XWayland).
 	Photo	Фото
 	Print	Печать
 	Art & Illustration	Искусство и иллюстрация
@@ -2163,6 +2163,8 @@
 	Font preview	Предпросмотр шрифтов
 	Full size tip	Весь диаметр кисти
 	GPU backend	Бэкенд GPU
+	Linux display server	Дисплейный сервер Linux
+	X11	X11
 	Gamut warning color	Цвет предупреждения об охвате
 	Gamut warning opacity	Непрозрачность предупреждения об охвате
 	General	Основные

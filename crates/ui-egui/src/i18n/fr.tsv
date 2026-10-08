@@ -1967,6 +1967,8 @@
 	CPU (no GPU acceleration)	CPU (sans accélération GPU)
 	DirectX 12	DirectX 12
 	GPU backend	Moteur GPU
+	Linux display server	Serveur d'affichage Linux
+	X11	X11
 	Metal	Metal
 	OpenGL	OpenGL
 	Use tablet pressure	Utiliser la pression de la tablette
@@ -2455,7 +2457,7 @@
 	Floating point	Virgule flottante
 	Use Global Light	Utiliser la lumière globale
 	Native file drag-and-drop is unavailable	Le glisser-déposer natif de fichiers n'est pas disponible
-	Native file drag-and-drop is not supported on Wayland yet. Use File › Open, or run PhotoCraft under XWayland with `WAYLAND_DISPLAY= photocraft`.	Le glisser-déposer natif de fichiers n'est pas encore pris en charge sous Wayland. Utilisez Fichier › Ouvrir, ou lancez PhotoCraft sous XWayland avec `WAYLAND_DISPLAY= photocraft`.
+	Native file drag-and-drop is not supported on Wayland yet. Use File › Open, or set Preferences › Performance › Linux display server to X11 and restart PhotoCraft (it then runs through XWayland).	Le glisser-déposer natif de fichiers n'est pas encore pris en charge sous Wayland. Utilisez Fichier › Ouvrir, ou réglez Préférences › Performances › Serveur d'affichage Linux sur X11 et redémarrez PhotoCraft (il passe alors par XWayland).
 	Use File › Open to open an image.	Utilisez Fichier › Ouvrir pour ouvrir une image.
 	Mixer Brush Tool	Outil Pinceau mélangeur
 	Invalid {mode} profile	Profil {mode} non valide

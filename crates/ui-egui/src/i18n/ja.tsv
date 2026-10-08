@@ -979,7 +979,7 @@
 	Draw with the Pen tool (P) or make a work path from a selection.	ペンツール(P)で描くか、選択範囲から作業用パスを作成します。
 	Drop an image or PSD anywhere to open it.	画像や PSD をここにドロップすると開きます。
 	Native file drag-and-drop is unavailable	Wayland ではネイティブのファイルドラッグ＆ドロップを利用できません
-	Native file drag-and-drop is not supported on Wayland yet. Use File › Open, or run PhotoCraft under XWayland with `WAYLAND_DISPLAY= photocraft`.	Wayland ではネイティブのファイルドラッグ＆ドロップはまだ利用できません。[ファイル › 開く] を使うか、`WAYLAND_DISPLAY= photocraft` を指定して PhotoCraft を XWayland 上で起動してください。
+	Native file drag-and-drop is not supported on Wayland yet. Use File › Open, or set Preferences › Performance › Linux display server to X11 and restart PhotoCraft (it then runs through XWayland).	Wayland ではネイティブのファイルドラッグ＆ドロップはまだ利用できません。ファイル › 開く を使うか、環境設定 › パフォーマンス › Linux ディスプレイサーバーを X11 にして PhotoCraft を再起動してください（XWayland 経由で動作します）。
 	Duplicate Layers…	レイヤーを複製…
 	Duplicate style	スタイルを複製
 	Edit Toolbar…	ツールバーを編集…
@@ -2000,6 +2000,8 @@
 	CPU (no GPU acceleration)	CPU(GPU アクセラレーションなし)
 	DirectX 12	DirectX 12
 	GPU backend	GPU バックエンド
+	Linux display server	Linux ディスプレイサーバー
+	X11	X11
 	Metal	Metal
 	OpenGL	OpenGL
 	Use tablet pressure	タブレットの筆圧を使用

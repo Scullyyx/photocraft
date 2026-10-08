@@ -972,7 +972,7 @@
 	Draw with the Pen tool (P) or make a work path from a selection.	Disegna con Penna (P) o crea un tracciato di lavoro da una selezione.
 	Drop an image or PSD anywhere to open it.	Trascina un'immagine o PSD ovunque per aprirlo.
 	Native file drag-and-drop is unavailable	Il drag-and-drop nativo file non è disponibile su Wayland
-	Native file drag-and-drop is not supported on Wayland yet. Use File › Open, or run PhotoCraft under XWayland with `WAYLAND_DISPLAY= photocraft`.	Il drag-and-drop nativo non è ancora supportato su Wayland. Usa File › Apri, o avvia PhotoCraft sotto XWayland con `WAYLAND_DISPLAY= photocraft`.
+	Native file drag-and-drop is not supported on Wayland yet. Use File › Open, or set Preferences › Performance › Linux display server to X11 and restart PhotoCraft (it then runs through XWayland).	Il drag-and-drop nativo dei file non è ancora supportato su Wayland. Usa File › Apri, oppure imposta Preferenze › Prestazioni › Server grafico Linux su X11 e riavvia PhotoCraft (verrà eseguito tramite XWayland).
 	Duplicate Layers…	Duplica livelli…
 	Duplicate style	Duplica stile
 	Edit Toolbar…	Modifica barra strumenti…
@@ -1992,6 +1992,8 @@
 	CPU (no GPU acceleration)	CPU (nessuna accelerazione GPU)
 	DirectX 12	DirectX 12
 	GPU backend	Backend GPU
+	Linux display server	Server grafico Linux
+	X11	X11
 	Metal	Metal
 	OpenGL	OpenGL
 	Use tablet pressure	Usa pressione tavoletta
