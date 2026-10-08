@@ -1838,6 +1838,23 @@ pub fn canvas_view(app: &mut PhotocraftApp, ui: &mut egui::Ui, idx: usize, rect:
         // A drag is only recognised once the pointer has moved past egui's click distance: the
         // gesture starts where the button went down, not where it is now (#123).
         let gesture_active_before = app.drag.is_some();
+        // Live painting tools start on the press, not once the pointer passes egui's click
+        // distance: the first dab shows at once. The drag recognised later continues that stroke,
+        // and a click (or a long press that never moved) just ends it.
+        if strokes_live(tool)
+            && app.drag.is_none()
+            && response.is_pointer_button_down_on()
+            && ui.input(|i| i.pointer.primary_pressed())
+            && let Some(p) = ui.input(|i| i.pointer.press_origin()).filter(|p| rect.contains(*p))
+        {
+            let d = xf.to_doc(p);
+            tool_event(app, ToolEvent::Down { x: d[0], y: d[1], pressure: app.stylus.pressure() }, mods);
+            app.press_stroke = app.drag.is_some();
+        }
+        let press_stroke = app.press_stroke;
+        if press_stroke {
+            buttons.started = false;
+        }
         if buttons.started
             && let Some(p) = ui.input(|i| i.pointer.press_origin()).filter(|p| rect.contains(*p)).or(response.interact_pointer_pos())
         {
@@ -1897,6 +1914,20 @@ pub fn canvas_view(app: &mut PhotocraftApp, ui: &mut egui::Ui, idx: usize, rect:
             if let Some(d) = p {
                 tool_event(app, ToolEvent::Up { x: d[0], y: d[1] }, mods);
             }
+        }
+        // A stroke started on the press ends with the release, whether egui saw a drag, a click,
+        // or neither (a long press that never moved).
+        if press_stroke && !buttons.stopped && ui.input(|i| i.pointer.primary_released()) {
+            buttons.clicked = false;
+            let p = response.interact_pointer_pos().map(|p| xf.to_doc(p)).or_else(|| app.drag.as_ref().and_then(|d| d.points.last().map(|q| [q[0], q[1]])));
+            if let Some(d) = p
+                && app.drag.is_some()
+            {
+                tool_event(app, ToolEvent::Up { x: d[0], y: d[1] }, mods);
+            }
+        }
+        if press_stroke && (app.drag.is_none() || !ui.input(|i| i.pointer.primary_down())) {
+            app.press_stroke = false;
         }
         if buttons.clicked
             && let Some(p) = response.interact_pointer_pos()
