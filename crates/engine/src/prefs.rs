@@ -219,6 +219,10 @@ pub struct Interface {
     /// Move tool drags show only the layer's outline and an arrow, leaving its pixels in place
     /// until release. Off (the default), the pixels follow the pointer live inside the outline.
     pub show_bounding_box_when_dragging_layer: bool,
+    /// Draw PhotoCraft's own title bar (the app icon, the menus and the window buttons) instead of
+    /// the operating system's frame. Only Windows and Linux honour it; macOS always uses its own
+    /// transparent native title bar.
+    pub use_system_title_bar: bool,
 }
 
 impl Default for Interface {
@@ -236,6 +240,7 @@ impl Default for Interface {
             show_menu_colors: true,
             show_tooltips: true,
             show_bounding_box_when_dragging_layer: false,
+            use_system_title_bar: false,
         }
     }
 }
@@ -861,6 +866,11 @@ pub const HIDDEN_UNTIL_IMPLEMENTED: &[&str] = &[
 
 /// Is the preference at `path` (`"section.key"`) hidden from the Preferences dialog?
 pub fn is_hidden(path: &str) -> bool {
+    // PhotoCraft's own title bar is a Windows/Linux feature: macOS keeps its transparent native
+    // title bar and the web build has no window frame, so the setting would do nothing there.
+    if path == "interface.useSystemTitleBar" {
+        return cfg!(any(target_os = "macos", target_arch = "wasm32"));
+    }
     HIDDEN_UNTIL_IMPLEMENTED.contains(&path)
 }
 

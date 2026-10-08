@@ -42,6 +42,32 @@ fn toggle_maximize(ctx: &egui::Context) {
     ctx.send_viewport_cmd(ViewportCommand::Maximized(!maximized(ctx)));
 }
 
+/// Whether this build can draw its own title bar at all: macOS keeps its transparent native title
+/// bar with the traffic lights, and the web build has no window frame.
+fn supported() -> bool {
+    cfg!(all(not(target_os = "macos"), not(target_arch = "wasm32")))
+}
+
+/// Keep the app's own title bar and the OS frame in step with Preferences › Interface › Use System
+/// Title Bar, once per frame from `logic`. PhotoCraft draws its own title bar by default on Windows
+/// and Linux (the window has no OS decorations); the preference hands the frame back to the
+/// operating system at runtime. Does nothing on macOS (transparent native title bar) and the web
+/// (no window frame).
+pub fn sync_decorations(app: &mut PhotocraftApp, ctx: &egui::Context) {
+    if !supported() {
+        app.custom_titlebar = false;
+        return;
+    }
+    app.custom_titlebar = !app.session.prefs().interface.use_system_title_bar;
+    // `Decorations(true)` is the OS frame; it comes back only when the app's own title bar is off.
+    let want = !app.custom_titlebar;
+    if app.window_decorations == Some(want) {
+        return;
+    }
+    app.window_decorations = Some(want);
+    ctx.send_viewport_cmd(ViewportCommand::Decorations(want));
+}
+
 /// Minimize, Maximize/Restore and Close at the right end of `bar` (the title bar's outer rect),
 /// full bar height, flush with the window's edge (even if the bar's contents run wider) so a
 /// maximized window's corner hits Close. Close runs File › Exit, which asks about unsaved
@@ -338,5 +364,36 @@ mod tests {
         let cmds = w.gesture(&[pos2(1.0, 300.0), pos2(8.0, 300.0)]);
         assert!(!cmds.iter().any(|c| matches!(c, ViewportCommand::BeginResize(_))), "{cmds:?}");
         assert!(w.click(pos2(999.5, 0.5)).iter().any(|c| matches!(c, ViewportCommand::Close)));
+    }
+
+    /// One frame of [`sync_decorations`]; the native frame it asked for, if any.
+    fn decorations(app: &mut PhotocraftApp, ctx: &egui::Context) -> Option<bool> {
+        let mut out = ctx.run_ui(RawInput::default(), |ui| sync_decorations(app, ui.ctx()));
+        out.textures_delta.clear();
+        out.viewport_output.get(&ViewportId::ROOT).and_then(|v| {
+            v.commands.iter().find_map(|c| match c {
+                ViewportCommand::Decorations(v) => Some(*v),
+                _ => None,
+            })
+        })
+    }
+
+    #[test]
+    fn the_system_title_bar_preference_switches_the_os_frame() {
+        if !supported() {
+            return;
+        }
+        let ctx = egui::Context::default();
+        let mut app = PhotocraftApp::new(Session::new(), crate::Services::default());
+        // First frame: PhotoCraft draws its own title bar, so the OS frame goes off.
+        assert_eq!(decorations(&mut app, &ctx), Some(false));
+        assert!(app.custom_titlebar);
+        // Nothing changed: no command repeats (egui would otherwise reconfigure the window).
+        assert_eq!(decorations(&mut app, &ctx), None);
+        // Preferences › Interface › Use System Title Bar: the native frame comes back.
+        app.session.prefs.edit(|p| p.interface.use_system_title_bar = true);
+        assert_eq!(decorations(&mut app, &ctx), Some(true));
+        assert!(!app.custom_titlebar);
+        assert_eq!(decorations(&mut app, &ctx), None);
     }
 }
