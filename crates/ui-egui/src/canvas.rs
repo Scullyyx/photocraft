@@ -946,6 +946,8 @@ pub(crate) fn retain_gpu_documents(app: &mut PhotocraftApp) {
 pub fn document_area(app: &mut PhotocraftApp, ui: &mut egui::Ui) {
     documents(app, ui);
     crate::layer_transfer::finish(app, ui.ctx());
+    // Once a frame, not per document view: the right-click or options-bar Brush Preset picker.
+    crate::paint_mouse::show_picker(app, ui.ctx());
 }
 
 /// Window › Arrange tiles: each document shown with its tile in `rect`, or `None` when the
@@ -1946,7 +1948,6 @@ pub fn canvas_view(app: &mut PhotocraftApp, ui: &mut egui::Ui, idx: usize, rect:
         crate::zoom_tool::draw(&ctx, &painter);
         let resizing = crate::brush_resize::draw(app, &painter, &xf);
         draw_transform_controls(app, &painter, &xf);
-        crate::paint_mouse::show_picker(app, &ctx);
         crate::layer_pick_ui::show(app, &ctx);
         crate::canvas_tool_menu::show(app, &ctx);
         crate::snap_ui::draw(app, &painter, &xf);
