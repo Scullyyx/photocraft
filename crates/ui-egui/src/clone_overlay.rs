@@ -22,7 +22,7 @@ struct Cached {
 /// Draw the preview under the pointer at `doc` (document px), when the Clone Stamp has a fresh
 /// source.
 pub fn draw(app: &PhotocraftApp, painter: &egui::Painter, xf: &ViewXform, doc: [f64; 2]) {
-    if app.ui.tool != Tool::CloneStamp || !app.ui.clone_overlay || app.drag.is_some() {
+    if !matches!(app.ui.tool, Tool::CloneStamp | Tool::Healing) || !app.ui.clone_overlay || app.drag.is_some() {
         return;
     }
     // ⌥ held: the pointer picks a new source, so it shows the image under it instead.
