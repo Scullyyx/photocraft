@@ -2132,3 +2132,8 @@ cameraRaw	Color	Barvy
 	% of all commits	% všech commitů
 	Lines +/−	Řádky +/−
 	@{login}: {prs} PRs, {commits} commits, +{added} / −{deleted} lines (Δ {delta}), +{binAdded} / −{binDeleted} binary assets, {first} – {last}	@{login}: PR: {prs}, commity: {commits}, řádky +{added} / −{deleted} (Δ {delta}), binární soubory +{binAdded} / −{binDeleted}, {first} – {last}
+
+# Pattern Stamp tool
+	Pattern Stamp Tool	Nástroj razítko vzorku
+	Pattern Stamp	Razítko vzorku
+	Impressionist	Impresionista

@@ -88,6 +88,7 @@ pub fn tool_icon(t: Tool) -> &'static str {
         Tool::Patch => "lasso-select",
         Tool::ContentAwareMove => "arrow-left-right",
         Tool::CloneStamp => "stamp",
+        Tool::PatternStamp => "grid-3x3",
         Tool::HistoryBrush => "clock",
         Tool::Blur => "droplet",
         Tool::Sharpen => "triangle",

@@ -2141,3 +2141,8 @@ cameraRaw	Blending	混合
 	% of all commits	占全部提交的 %
 	Lines +/−	行数 +/−
 	@{login}: {prs} PRs, {commits} commits, +{added} / −{deleted} lines (Δ {delta}), +{binAdded} / −{binDeleted} binary assets, {first} – {last}	@{login}：{prs} 个 PR，{commits} 次提交，行 +{added} / −{deleted}（Δ {delta}），二进制文件 +{binAdded} / −{binDeleted}，{first} – {last}
+
+# Pattern Stamp tool
+	Pattern Stamp Tool	图案图章工具
+	Pattern Stamp	图案图章
+	Impressionist	印象派

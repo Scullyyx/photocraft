@@ -566,6 +566,7 @@ fn routed(id: &str) -> bool {
         || matches!(
             id,
             "paint.cloneStamp"
+                | "paint.patternStamp"
                 | "paint.healingBrush"
                 | "paint.spotHealing"
                 | "paint.dodge"

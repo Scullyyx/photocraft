@@ -292,6 +292,7 @@ pub(crate) fn freehand_tool(tool: Tool) -> bool {
             | Tool::SpotHealing
             | Tool::Healing
             | Tool::CloneStamp
+            | Tool::PatternStamp
             | Tool::Blur
             | Tool::Sharpen
             | Tool::Smudge
@@ -3050,6 +3051,7 @@ mod tests {
             Tool::Eraser,
             Tool::BackgroundEraser,
             Tool::CloneStamp,
+            Tool::PatternStamp,
             Tool::Smudge,
             Tool::Dodge,
             Tool::Lasso,
@@ -3069,6 +3071,12 @@ mod tests {
         assert!(brush_tip_centre(Tool::Healing, true, false, 20.0));
         assert!(!brush_tip_centre(Tool::Healing, false, false, 20.0));
         assert!(brush_tip_centre(Tool::CloneStamp, false, true, 20.0));
+        assert!(brush_tip_centre(Tool::PatternStamp, false, false, 20.0));
+        assert!(
+            brush_tip_centre(Tool::PatternStamp, true, false, 20.0),
+            "Pattern Stamp keeps the brush centre; Option does not switch it to a clone-source mark"
+        );
+        assert!(!brush_tip_centre(Tool::PatternStamp, false, false, 2.0));
         assert!(brush_tip_centre(Tool::Brush, false, false, 20.0));
         assert!(!brush_tip_centre(Tool::QuickSelection, false, false, 20.0));
         assert!(brush_tip_centre(Tool::BackgroundEraser, false, false, 2.0));
