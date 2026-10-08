@@ -464,10 +464,12 @@ mod tests {
             arm(&mut app, id, "gray");
             assert!(sample_at(&mut app, 4.0, 4.0), "RGB @{depth}");
             let red = channel_points(&app, "red");
-            let neutral_anchor = red.iter().find(|point| (point[1] - 127.5).abs() < 1e-5).unwrap();
+            let target_level = (f64::from(sampled[0]) * 0.2126 + f64::from(sampled[1]) * 0.7152 + f64::from(sampled[2]) * 0.0722) * 255.0;
             let sample_level = f64::from(sampled[0]) * 255.0;
-            let serialized_level = (sample_level * 100.0).round() / 100.0;
-            assert!((neutral_anchor[0] - serialized_level).abs() < 1e-5, "depth={depth} anchor={neutral_anchor:?} sampled={}", sampled[0]);
+            let serialized_sample_level = (sample_level * 100.0).round() / 100.0;
+            let neutral_anchor = red.iter().find(|point| (point[0] - serialized_sample_level).abs() < 1e-5).unwrap();
+            let serialized_target_level = (target_level * 100.0).round() / 100.0;
+            assert!((neutral_anchor[1] - serialized_target_level).abs() < 1e-5, "depth={depth} anchor={neutral_anchor:?} sampled={sampled:?}");
             assert!((neutral_anchor[0] - sample_level).abs() <= 0.0051, "depth={depth} anchor={neutral_anchor:?} sampled={}", sampled[0]);
             if depth == 16 || depth == 32 {
                 assert!(
