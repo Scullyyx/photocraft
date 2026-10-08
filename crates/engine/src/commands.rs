@@ -453,14 +453,7 @@ fn build() -> Vec<CommandSpec> {
             }
             let id = layer_param(s, p)?;
             let nid = s.edit("Duplicate Layer", |doc, active| {
-                let src = doc.layer(id).ok_or(EngineError::NoLayer(id))?;
-                // A copy of the Background layer is an ordinary, unlocked layer (Photoshop).
-                let from_background = src.name == "Background" && src.locks.transparency && doc.layers.first().is_some_and(|b| b.id == id);
-                let mut dup = src.duplicate();
-                dup.name = format!("{} copy", dup.name);
-                if from_background {
-                    dup.locks = Default::default();
-                }
+                let dup = layer_copy(doc, id)?;
                 let nid = doc.insert_above(Some(id), dup);
                 *active = Some(nid);
                 Ok(nid)
@@ -694,45 +687,55 @@ fn build() -> Vec<CommandSpec> {
             })?;
             Ok(Value::Null)
         }),
-        cmd!("layer.moveTo", "Reorder Layer", [], None, r##"{"layer":id?,"target":id,"position":"above|below|into"="above"}"##, has_layer, |s, p| {
-            let id = layer_param(s, p)?;
-            let target = LayerId(p.get("target").and_then(Value::as_u64).ok_or_else(|| bad("layer.moveTo", "missing `target`"))?);
-            let pos = p.get("position").and_then(Value::as_str).unwrap_or("above").to_string();
-            if id == target {
-                return Ok(Value::Null);
+        cmd!(
+            "layer.moveTo",
+            "Reorder Layer",
+            [],
+            None,
+            r##"{"layer":id?,"target":id,"position":"above|below|into"="above","copy":bool=false} (copy: place a duplicate there and leave the layer, as ⌥-dragging a Layers panel row)"##,
+            has_layer,
+            |s, p| {
+                let id = layer_param(s, p)?;
+                let target = LayerId(p.get("target").and_then(Value::as_u64).ok_or_else(|| bad("layer.moveTo", "missing `target`"))?);
+                let pos = p.get("position").and_then(Value::as_str).unwrap_or("above").to_string();
+                let copy = p.get("copy").and_then(Value::as_bool).unwrap_or(false);
+                if id == target && !copy {
+                    return Ok(Value::Null);
+                }
+                let moved = s.edit(if copy { "Duplicate Layer" } else { "Reorder Layers" }, |doc, active| {
+                    // Refuse to move (or copy) a group into itself or its descendants.
+                    if doc.layer(id).is_some_and(|l| contains_layer(l, target) && (l.id != target || pos == "into")) {
+                        return Err(EngineError::Other("can't move a group into itself".into()));
+                    }
+                    let layer = if copy { layer_copy(doc, id)? } else { doc.remove(id).ok_or(EngineError::NoLayer(id))? };
+                    let moved = layer.id;
+                    let path = doc.path_of(target).ok_or(EngineError::NoLayer(target))?;
+                    match pos.as_str() {
+                        "into" => {
+                            let g = doc.layer_at_mut(&path).and_then(|t| t.children_mut()).ok_or_else(|| EngineError::Other("target is not a group".into()))?;
+                            g.push(layer);
+                        }
+                        other => {
+                            let (&last, parent) = path.split_last().ok_or(EngineError::NoLayer(target))?;
+                            let sib = if parent.is_empty() {
+                                &mut doc.layers
+                            } else {
+                                doc.layer_at_mut(parent)
+                                    .and_then(|t| t.children_mut())
+                                    .ok_or_else(|| EngineError::Other("target's parent is not a group".into()))?
+                            };
+                            let at = if other == "below" { last } else { last + 1 };
+                            sib.insert(at.min(sib.len()), layer);
+                        }
+                    }
+                    // Moving a group into (or beside) a deeply nested layer can pass the nesting cap.
+                    crate::layer_multi_cmds::check_group_depth(doc, "Reorder Layer")?;
+                    *active = Some(moved);
+                    Ok(moved)
+                })?;
+                Ok(if copy { json!({ "layer": moved.0 }) } else { Value::Null })
             }
-            s.edit("Reorder Layers", |doc, active| {
-                // Refuse to move a group into itself or its descendants.
-                if doc.layer(id).is_some_and(|l| contains_layer(l, target)) {
-                    return Err(EngineError::Other("can't move a group into itself".into()));
-                }
-                let layer = doc.remove(id).ok_or(EngineError::NoLayer(id))?;
-                let path = doc.path_of(target).ok_or(EngineError::NoLayer(target))?;
-                match pos.as_str() {
-                    "into" => {
-                        let g = doc.layer_at_mut(&path).and_then(|t| t.children_mut()).ok_or_else(|| EngineError::Other("target is not a group".into()))?;
-                        g.push(layer);
-                    }
-                    other => {
-                        let (&last, parent) = path.split_last().ok_or(EngineError::NoLayer(target))?;
-                        let sib = if parent.is_empty() {
-                            &mut doc.layers
-                        } else {
-                            doc.layer_at_mut(parent)
-                                .and_then(|t| t.children_mut())
-                                .ok_or_else(|| EngineError::Other("target's parent is not a group".into()))?
-                        };
-                        let at = if other == "below" { last } else { last + 1 };
-                        sib.insert(at.min(sib.len()), layer);
-                    }
-                }
-                // Moving a group into (or beside) a deeply nested layer can pass the nesting cap.
-                crate::layer_multi_cmds::check_group_depth(doc, "Reorder Layer")?;
-                *active = Some(id);
-                Ok(())
-            })?;
-            Ok(Value::Null)
-        }),
+        ),
         cmd!(
             "layer.translate",
             "Move Layer",
@@ -1182,6 +1185,20 @@ pub(crate) fn translate_layer(doc: &Document, l: &mut Layer, dx: i32, dy: i32) {
         LayerContent::Smart(sm) => crate::smart_cmds::shift_smart(sm, dx, dy),
         _ => {}
     }
+}
+
+/// A copy of layer `id` as Layer › Duplicate Layer makes it, not yet in the document: a fresh id,
+/// "… copy" appended to the name, and a copy of the Background layer is an ordinary, unlocked
+/// layer (Photoshop).
+fn layer_copy(doc: &Document, id: LayerId) -> Result<Layer> {
+    let src = doc.layer(id).ok_or(EngineError::NoLayer(id))?;
+    let from_background = src.name == "Background" && src.locks.transparency && doc.layers.first().is_some_and(|b| b.id == id);
+    let mut dup = src.duplicate();
+    dup.name = format!("{} copy", dup.name);
+    if from_background {
+        dup.locks = Default::default();
+    }
+    Ok(dup)
 }
 
 /// Does `l` (or any descendant) have id `target`?
