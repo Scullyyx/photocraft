@@ -29,6 +29,9 @@
 	Open Recent	Apri recenti
 	Clear Recent Files	Cancella file recenti
 	Close	Chiudi
+	Minimize	Riduci a icona
+	Maximize	Ingrandisci
+	Restore	Ripristina
 	Close All	Chiudi tutto
 	Close Others	Chiudi altri
 	Save	Salva
@@ -965,6 +968,7 @@
 	Drag a rectangle around the object	Trascina un rettangolo attorno all'oggetto
 	Drag on the image to add a constraint; Shift for horizontal/vertical; right-click to delete.	Trascina sull'immagine per aggiungere un vincolo; Maiusc per orizz/vert; click destro per eliminare.
 	Drag to move the active shape's path or the Work Path	Trascina per spostare il tracciato forma attiva o il Tracciato di lavoro
+	Click: select anchor · Drag: move anchor, handle or segment · {shift}-click: add · {alt}-click: whole subpath	Clic: seleziona punto · Trascina: sposta punto, maniglia o segmento · {shift}-clic: aggiungi · {alt}-clic: intero sottotracciato
 	Draw with the Pen tool (P) or make a work path from a selection.	Disegna con Penna (P) o crea un tracciato di lavoro da una selezione.
 	Drop an image or PSD anywhere to open it.	Trascina un'immagine o PSD ovunque per aprirlo.
 	Native file drag-and-drop is unavailable	Il drag-and-drop nativo file non è disponibile su Wayland
@@ -1593,6 +1597,7 @@
 	Paint Bucket Tool	Strumento Secchiello
 	Paints from the document's opening state	Dipinge dallo stato di apertura del documento
 	Path Selection Tool	Strumento Selezione tracciato
+	Direct Selection Tool	Strumento Selezione diretta
 	Pattern Overlay	Sovrapposizione pattern
 	Pen Pressure	Pressione penna
 	Pen Tilt	Inclinazione penna
@@ -1787,6 +1792,7 @@
 	Light gray	Grigio chiaro
 	Line	Linea
 	Lines	Linee
+	Lossless	Senza perdita
 	Lowercase extension	Estensione minuscola
 	Maximize psd compatibility	Massimizza compatibilità PSD
 	Medium gray	Grigio medio
@@ -2167,3 +2173,36 @@ cameraRaw	Amount	Quantità
 	Magnetic Lasso Tool	Strumento Lazo magnetico
 	Frequency	Frequenza
 	Use tablet pressure to change pen width	Usa pressione tavoletta per cambiare la larghezza della penna
+
+# About ▸ Contributors / Models (credits, craftrules standards/contributors.md)
+	About	Informazioni
+	Contributors	Collaboratori
+	Models	Modelli
+	Sort	Ordina
+	Username	Nome utente
+	Display name	Nome visualizzato
+	Real name	Nome reale
+	Reverse the order	Inverti l'ordine
+	Grab bag	Elenco libero
+	Table	Tabella
+	Name (A–Z)	Nome (A–Z)
+	Merged PRs	PR unite
+	Commits	Commit
+	Lines added	Righe aggiunte
+	Lines deleted	Righe eliminate
+	Line delta	Differenza righe
+	Binary assets added	Risorse binarie aggiunte
+	Binary assets removed	Risorse binarie rimosse
+	First commit	Primo commit
+	First	Primo
+	Last commit	Ultimo commit
+	Last	Ultimo
+	Contributors: {contributors} · Commits: {commits}	Collaboratori: {contributors} · Commit: {commits}
+	No contributor data was built into this copy.	Questa copia non include dati sui collaboratori.
+	No model credits were built into this copy.	Questa copia non include i crediti dei modelli.
+	Company	Azienda
+	Version	Versione
+	% of all commits	% di tutti i commit
+	Lines +/−	Righe +/−
+	@{login}: {prs} PRs, {commits} commits, +{added} / −{deleted} lines (Δ {delta}), +{binAdded} / −{binDeleted} binary assets, {first} – {last}	@{login}: {prs} PR, {commits} commit, +{added} / −{deleted} righe (Δ {delta}), +{binAdded} / −{binDeleted} risorse binarie, {first} – {last}
+	Convert to Layers	Converti in livelli

@@ -39,6 +39,9 @@
 	Open Recent	Открыть недавние
 	Clear Recent Files	Очистить список недавних файлов
 	Close	Закрыть
+	Minimize	Свернуть
+	Maximize	Развернуть
+	Restore	Свернуть в окно
 	Close All	Закрыть все
 	Close Others	Закрыть остальные
 	Save	Сохранить
@@ -1083,6 +1086,7 @@
 	Vector Mask from Current Path	Векторная маска из текущего контура
 	Create new shape from the current path	Создать новую фигуру из текущего контура
 	Drag to move the active shape's path or the Work Path	Перетащите, чтобы переместить контур активной фигуры или рабочий контур
+	Click: select anchor · Drag: move anchor, handle or segment · {shift}-click: add · {alt}-click: whole subpath	Щелчок: выбрать узел · Перетаскивание: переместить узел, маркер или сегмент · {shift}-щелчок: добавить · {alt}-щелчок: весь подконтур
 	Draw with the Pen tool (P) or make a work path from a selection.	Нарисуйте пером (P) или создайте рабочий контур из выделения.
 
 # Clone Source panel
@@ -1233,6 +1237,7 @@
 	Urgency	Срочность
 	High	Высокая
 	Normal	Обычная
+	Lossless	Без потерь
 	Low	Низкая
 	Category	Категория
 	Supplemental Categories	Дополнительные категории
@@ -1494,6 +1499,7 @@
 	Object Selection Tool	Выделение объектов
 	Pen Tool	Перо
 	Path Selection Tool	Выделение контура
+	Direct Selection Tool	Выделение узла
 	Rectangle Tool	Прямоугольник
 	Ellipse Tool	Овал
 	Triangle Tool	Треугольник
@@ -1720,6 +1726,7 @@
 	Combine Shapes	Комбинировать фигуры
 	Contract…	Сжать…
 	Convert to Embedded	Преобразовать во встроенный
+	Convert to Layers	Преобразовать в слои
 	Convert to Linked…	Преобразовать в связанный…
 	Count	Счёт
 	Create Layer	Создать слой
@@ -2368,3 +2375,35 @@ cameraRaw	Roughness	Неровность
 	Magnetic Lasso Tool	Магнитное лассо
 	Frequency	Частота
 	Use tablet pressure to change pen width	Использовать нажим планшета для изменения ширины пера
+
+# About ▸ Contributors / Models (credits, craftrules standards/contributors.md)
+	About	О программе
+	Contributors	Участники
+	Models	Модели
+	Sort	Сортировка
+	Username	Имя пользователя
+	Display name	Отображаемое имя
+	Real name	Настоящее имя
+	Reverse the order	Обратный порядок
+	Grab bag	Списком
+	Table	Таблица
+	Name (A–Z)	Имя (А–Я)
+	Merged PRs	Принятые PR
+	Commits	Коммиты
+	Lines added	Добавлено строк
+	Lines deleted	Удалено строк
+	Line delta	Разница строк
+	Binary assets added	Добавлено двоичных файлов
+	Binary assets removed	Удалено двоичных файлов
+	First commit	Первый коммит
+	First	Первый
+	Last commit	Последний коммит
+	Last	Последний
+	Contributors: {contributors} · Commits: {commits}	Участники: {contributors} · Коммиты: {commits}
+	No contributor data was built into this copy.	В эту копию не встроены данные об участниках.
+	No model credits were built into this copy.	В эту копию не встроены сведения о моделях.
+	Company	Компания
+	Version	Версия
+	% of all commits	% от всех коммитов
+	Lines +/−	Строки +/−
+	@{login}: {prs} PRs, {commits} commits, +{added} / −{deleted} lines (Δ {delta}), +{binAdded} / −{binDeleted} binary assets, {first} – {last}	@{login}: PR: {prs}, коммиты: {commits}, строки +{added} / −{deleted} (Δ {delta}), двоичные файлы +{binAdded} / −{binDeleted}, {first} – {last}

@@ -33,6 +33,9 @@
 	Open Recent	最近使ったファイルを開く
 	Clear Recent Files	最近使ったファイルを消去
 	Close	閉じる
+	Minimize	最小化
+	Maximize	最大化
+	Restore	元に戻す（縮小）
 	Close All	すべて閉じる
 	Close Others	ほかを閉じる
 	Save	保存
@@ -311,6 +314,7 @@
 	Smart Object	スマートオブジェクト
 	Convert to Smart Object	スマートオブジェクトに変換
 	Convert to Embedded	埋め込みに変換
+	Convert to Layers	レイヤーに変換
 	Convert to Linked…	リンクに変換…
 	Edit Contents	コンテンツを編集
 	Replace Contents…	コンテンツを置き換え…
@@ -971,6 +975,7 @@
 	Drag a rectangle around the object	オブジェクトを囲む矩形をドラッグ
 	Drag on the image to add a constraint; Shift for horizontal/vertical; right-click to delete.	画像上をドラッグして制約を追加。Shift で水平/垂直、右クリックで削除。
 	Drag to move the active shape's path or the Work Path	ドラッグして、アクティブなシェイプのパスまたは作業用パスを移動
+	Click: select anchor · Drag: move anchor, handle or segment · {shift}-click: add · {alt}-click: whole subpath	クリック: アンカーポイントを選択 · ドラッグ: ポイント、ハンドル、セグメントを移動 · {shift}+クリック: 追加 · {alt}+クリック: サブパス全体
 	Draw with the Pen tool (P) or make a work path from a selection.	ペンツール(P)で描くか、選択範囲から作業用パスを作成します。
 	Drop an image or PSD anywhere to open it.	画像や PSD をここにドロップすると開きます。
 	Native file drag-and-drop is unavailable	Wayland ではネイティブのファイルドラッグ＆ドロップを利用できません
@@ -1600,6 +1605,7 @@
 	Paint Bucket Tool	塗りつぶしツール
 	Paints from the document's opening state	ドキュメントを開いた時点の状態から描画します
 	Path Selection Tool	パスコンポーネント選択ツール
+	Direct Selection Tool	パス選択ツール
 	Pattern Overlay	パターンオーバーレイ
 	Pen Pressure	ペンの筆圧
 	Pen Tilt	ペンの傾き
@@ -1794,6 +1800,7 @@
 	Light gray	ライトグレー
 	Line	線
 	Lines	線
+	Lossless	可逆圧縮
 	Lowercase extension	拡張子を小文字にする
 	Maximize psd compatibility	PSD の互換性を最大にする
 	Medium gray	中間グレー
@@ -2076,3 +2083,36 @@ cameraRaw	Color	カラー
 	Magnetic Lasso Tool	マグネット選択ツール
 	Frequency	頻度
 	Use tablet pressure to change pen width	タブレットの筆圧を使用してペンの幅を変更
+
+# About ▸ Contributors / Models (credits, craftrules standards/contributors.md)
+	About	バージョン情報
+	Contributors	コントリビューター
+	Models	モデル
+	Sort	並べ替え
+	Username	ユーザー名
+	Display name	表示名
+	Real name	本名
+	Reverse the order	順序を反転
+	Grab bag	一覧
+	Table	表
+	Name (A–Z)	名前 (A–Z)
+	Merged PRs	マージされた PR
+	Commits	コミット
+	Lines added	追加行数
+	Lines deleted	削除行数
+	Line delta	行数の増減
+	Binary assets added	追加したバイナリ
+	Binary assets removed	削除したバイナリ
+	First commit	最初のコミット
+	First	最初
+	Last commit	最後のコミット
+	Last	最後
+	Contributors: {contributors} · Commits: {commits}	コントリビューター: {contributors} · コミット: {commits}
+	No contributor data was built into this copy.	このコピーにはコントリビューターのデータが含まれていません。
+	No model credits were built into this copy.	このコピーにはモデルのクレジットが含まれていません。
+	Company	会社
+	Model	モデル
+	Version	バージョン
+	% of all commits	全コミットに占める割合 (%)
+	Lines +/−	行数 +/−
+	@{login}: {prs} PRs, {commits} commits, +{added} / −{deleted} lines (Δ {delta}), +{binAdded} / −{binDeleted} binary assets, {first} – {last}	@{login}: PR {prs} 件、コミット {commits} 件、行 +{added} / −{deleted} (Δ {delta})、バイナリ +{binAdded} / −{binDeleted}、{first} – {last}
