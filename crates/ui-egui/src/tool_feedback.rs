@@ -87,6 +87,10 @@ pub fn badge(app: &PhotocraftApp, tool: Tool, m: egui::Modifiers) -> Option<Badg
     if !is_selection_tool(tool) {
         return None;
     }
+    // ⌘ (⌘⌥) drags the selection's pixels instead of combining selections.
+    if m.command && app.drag.is_none() && app.session.active().is_some_and(|st| st.doc.selection.is_some()) {
+        return None;
+    }
     let m = app.drag.as_ref().filter(|d| d.tool == Tool::Lasso && tool == Tool::Lasso).map_or(m, |d| d.modifiers);
     Badge::from_mode(selection_mode(tool, app.ui.selection_mode, m))
 }
