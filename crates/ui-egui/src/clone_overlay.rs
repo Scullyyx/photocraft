@@ -1,7 +1,7 @@
 //! Clone Stamp source preview: once a source point is set (⌥-click), the brush under the pointer
 //! shows the pixels a stroke there would clone, shaped and faded like one dab of the brush (its
 //! size, hardness and tip). The first stroke ends the preview; setting a new source brings it
-//! back (`UiState::clone_overlay`).
+//! back (`UiState::clone_overlay`). Holding ⌥ (to pick a new source) hides it.
 
 use egui::{Color32, Pos2, Rect, pos2};
 use photocraft_engine::paint::StrokePoint;
@@ -23,6 +23,10 @@ struct Cached {
 /// source.
 pub fn draw(app: &PhotocraftApp, painter: &egui::Painter, xf: &ViewXform, doc: [f64; 2]) {
     if app.ui.tool != Tool::CloneStamp || !app.ui.clone_overlay || app.drag.is_some() {
+        return;
+    }
+    // ⌥ held: the pointer picks a new source, so it shows the image under it instead.
+    if painter.ctx().input(|i| i.modifiers.alt) || app.ui.shell.sticky_alt {
         return;
     }
     let Some(src) = crate::retouch_ui::sample_point(app, Some(doc)) else { return };
