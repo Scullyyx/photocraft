@@ -62,16 +62,7 @@ server-side document storage, desktop TCP control server, or web autosave/crash 
 save/download work before closing or reloading the page. A browser with WebGPU or WebGL2 is
 required; `?webgl` forces the fallback when troubleshooting.
 
-Verify a built image with the integration smoke test (Docker and Python 3 required):
-
-```sh
-python3 packaging/web/docker-smoke.py photocraft-web:local
-```
-
-It starts a temporary container with a read-only filesystem and `/tmp` tmpfs, checks health,
-non-root execution, HTML cache policy, generated JS/Wasm MIME types and gzip responses, and
-missing-file 404s, then stops it. This checks serving; to verify the browser renderer, open
-the page, open an image and save/export it.
+To verify the browser deployment, open the page, open an image and save/export it.
 
 ## Sizes
 

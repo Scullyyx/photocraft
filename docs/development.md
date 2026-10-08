@@ -298,7 +298,7 @@ docker run --rm -p 8080:8080 photocraft-web:local
 ```
 
 Open http://localhost:8080/. See [Docker hosting](../packaging/web/README.md#docker) for
-HTTPS/reverse-proxy deployment, browser limitations, and the container smoke test.
+HTTPS/reverse-proxy deployment and browser limitations.
 
 How the web shell (`apps/photocraft-web/src/web.rs`) differs from desktop:
 
