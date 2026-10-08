@@ -43,10 +43,10 @@ use crate::widgets;
 const ROW_H: f32 = 28.0;
 const INDENT: f32 = 14.0;
 const MIN_LIST_H: f32 = 112.0;
-/// Room the editor needs below the list (path row, Trilinear, Dither, visibility, Reset).
-const BELOW_LIST: f32 = 190.0;
-/// Space above the editor inside the Properties group (tab strip, layer title).
-const ABOVE_EDITOR: f32 = 44.0;
+/// What the editor needs below the list (path row, Trilinear, Dither, visibility, Reset) until
+/// [`finish`] has measured it, and the breathing room kept under the editor.
+const BELOW_LIST_GUESS: f32 = 150.0;
+const BOTTOM_MARGIN: f32 = 8.0;
 const STAR_ZONE: f32 = 26.0;
 const REMOVE_ZONE: f32 = 92.0;
 const PREVIEW_AFTER: f64 = 0.15;
@@ -110,6 +110,16 @@ fn dup_zone(ctx: &egui::Context, src: &Source, name: &str) -> f32 {
     let Some(of) = src.redundant.get(name) else { return REMOVE_ZONE };
     let job = egui::text::LayoutJob::simple_singleline(dup_label(of), FontId::proportional(12.0), egui::Color32::WHITE);
     ctx.fonts_mut(|f| f.layout_job(job)).size().x + 16.0
+}
+
+/// Call after the rest of the Color Lookup editor is drawn: measures how tall everything below the
+/// list is, so the list can use all the room that is left.
+pub fn finish(ui: &Ui, layer: LayerId) {
+    let Some(bottom) = memory::<f32>(ui, Id::new(("lutlib-list-bottom", layer.0))) else { return };
+    let below = ui.min_rect().bottom() - bottom;
+    if below > 0.0 && below < 600.0 {
+        remember(ui, Id::new(("lutlib-below", layer.0)), below);
+    }
 }
 
 /// The browser. `layer` keys the per-layer state; `builtins` are `(id, label)`.
@@ -230,9 +240,10 @@ pub fn browser(app: &mut PhotocraftApp, ui: &mut Ui, layer: LayerId, cur: &Curre
     }
 
     // The list fills what the Properties group has left: it follows the window, not a fixed size.
-    let viewport = ui.clip_rect().height();
-    let used = ui.cursor().min.y - ui.min_rect().min.y;
-    let list_h = (viewport - used - ABOVE_EDITOR - BELOW_LIST).max(MIN_LIST_H);
+    // The height of what the editor draws below the list is measured by `finish` (the frame
+    // before), so nothing here depends on a guessed layout.
+    let below: f32 = memory(ui, Id::new(("lutlib-below", layer.0))).unwrap_or(BELOW_LIST_GUESS);
+    let list_h = (ui.clip_rect().bottom() - ui.cursor().min.y - below - BOTTOM_MARGIN).max(MIN_LIST_H);
     let (saved_offset, saved_h): (f32, f32) = memory(ui, state_id).unwrap_or((0.0, list_h));
     let well = Rect::from_min_size(ui.cursor().min, vec2(ui.available_width(), list_h));
     ui.painter().rect(well, t.radius_sm, t.field, egui::Stroke::new(1.0, t.field_border), egui::StrokeKind::Inside);
@@ -392,6 +403,7 @@ pub fn browser(app: &mut PhotocraftApp, ui: &mut Ui, layer: LayerId, cur: &Curre
         })
         .inner;
     remember(ui, state_id, (out.state.offset.y, out.inner_rect.height()));
+    remember(ui, Id::new(("lutlib-list-bottom", layer.0)), out.inner_rect.bottom());
     // The list takes keyboard focus when clicked; Up / Down must not move focus away from it.
     let list_resp = ui.interact(out.inner_rect, list_id, Sense::focusable_noninteractive());
     if clicked_row {
