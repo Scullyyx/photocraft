@@ -2133,3 +2133,13 @@ cameraRaw	Color	Barvy
 	% of all commits	% všech commitů
 	Lines +/−	Řádky +/−
 	@{login}: {prs} PRs, {commits} commits, +{added} / −{deleted} lines (Δ {delta}), +{binAdded} / −{binDeleted} binary assets, {first} – {last}	@{login}: PR: {prs}, commity: {commits}, řádky +{added} / −{deleted} (Δ {delta}), binární soubory +{binAdded} / −{binDeleted}, {first} – {last}
+fontWeight	Thin	Jemná
+fontWeight	ExtraLight	Extrajemná
+fontWeight	Light	Světlá
+fontWeight	Regular	Normální
+fontWeight	Medium	Střední
+fontWeight	SemiBold	Polotučná
+fontWeight	Bold	Tučná
+fontWeight	ExtraBold	Extratučná
+fontWeight	Black	Černá
+fontWeight	Italic	Kurzíva

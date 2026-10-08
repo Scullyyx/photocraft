@@ -2141,3 +2141,13 @@ cameraRaw	Blending	混合
 	% of all commits	占全部提交的 %
 	Lines +/−	行数 +/−
 	@{login}: {prs} PRs, {commits} commits, +{added} / −{deleted} lines (Δ {delta}), +{binAdded} / −{binDeleted} binary assets, {first} – {last}	@{login}：{prs} 个 PR，{commits} 次提交，行 +{added} / −{deleted}（Δ {delta}），二进制文件 +{binAdded} / −{binDeleted}，{first} – {last}
+fontWeight	Thin	极细
+fontWeight	ExtraLight	特细
+fontWeight	Light	细体
+fontWeight	Regular	常规
+fontWeight	Medium	中等
+fontWeight	SemiBold	半粗
+fontWeight	Bold	粗体
+fontWeight	ExtraBold	特粗
+fontWeight	Black	黑体
+fontWeight	Italic	斜体

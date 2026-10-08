@@ -2564,3 +2564,13 @@ cameraRaw	Blending	Fusion
 	% of all commits	% de tous les commits
 	Lines +/−	Lignes +/−
 	@{login}: {prs} PRs, {commits} commits, +{added} / −{deleted} lines (Δ {delta}), +{binAdded} / −{binDeleted} binary assets, {first} – {last}	@{login} : {prs} PR, {commits} commits, +{added} / −{deleted} lignes (Δ {delta}), +{binAdded} / −{binDeleted} fichiers binaires, {first} – {last}
+fontWeight	Thin	Ultrafin
+fontWeight	ExtraLight	Extrafin
+fontWeight	Light	Maigre
+fontWeight	Regular	Normal
+fontWeight	Medium	Moyen
+fontWeight	SemiBold	Demi-gras
+fontWeight	Bold	Gras
+fontWeight	ExtraBold	Extra-gras
+fontWeight	Black	Noir
+fontWeight	Italic	Italique

@@ -2571,3 +2571,13 @@ cameraRaw	Whites	Brancos
 	% of all commits	% de todos os commits
 	Lines +/−	Linhas +/−
 	@{login}: {prs} PRs, {commits} commits, +{added} / −{deleted} lines (Δ {delta}), +{binAdded} / −{binDeleted} binary assets, {first} – {last}	@{login}: {prs} PRs, {commits} commits, +{added} / −{deleted} linhas (Δ {delta}), +{binAdded} / −{binDeleted} arquivos binários, {first} – {last}
+fontWeight	Thin	Fina
+fontWeight	ExtraLight	Extrafina
+fontWeight	Light	Leve
+fontWeight	Regular	Normal
+fontWeight	Medium	Médio
+fontWeight	SemiBold	Seminegrito
+fontWeight	Bold	Negrito
+fontWeight	ExtraBold	Extranegrito
+fontWeight	Black	Ultraniegra
+fontWeight	Italic	Itálico
