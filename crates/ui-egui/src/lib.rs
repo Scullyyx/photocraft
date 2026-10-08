@@ -35,6 +35,7 @@ pub mod canvas;
 pub mod canvas_tool_menu;
 pub mod channel_view;
 pub mod channels_panel;
+pub mod clone_overlay;
 pub mod chrome_ui;
 pub mod cjk_fonts;
 pub mod color_picker_ui;

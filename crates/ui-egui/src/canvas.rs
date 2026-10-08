@@ -2032,6 +2032,8 @@ pub fn canvas_view(app: &mut PhotocraftApp, ui: &mut egui::Ui, idx: usize, rect:
                             egui::CursorIcon::None
                         }
                         _ => {
+                            // Clone Stamp with a fresh source: what a stroke here would clone.
+                            crate::clone_overlay::draw(app, &painter, &xf, xf.to_doc(p));
                             painter.circle_stroke(p, r + 0.5, Stroke::new(1.0, Color32::from_black_alpha(140)));
                             painter.circle_stroke(p, r, Stroke::new(1.0, Color32::from_white_alpha(220)));
                             if brush_tip_centre(tool, alt || app.ui.shell.sticky_alt, cur.show_crosshair_in_brush_tip, r) {
@@ -2592,6 +2594,10 @@ pub fn tool_event(app: &mut PhotocraftApp, ev: ToolEvent, mods: egui::Modifiers)
             let mut points = vec![[x, y, pressure as f64]];
             if let Some(p) = from {
                 points.insert(0, [p[0], p[1], pressure as f64]);
+            }
+            // The first Clone Stamp stroke from a source ends its preview under the brush.
+            if tool == Tool::CloneStamp {
+                app.ui.clone_overlay = false;
             }
             app.drag = Some(Drag::new(tool, from.unwrap_or([x, y]), points, mods, erase));
             app.trail = None;

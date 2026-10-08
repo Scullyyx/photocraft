@@ -713,6 +713,10 @@ pub struct UiState {
     pub clone_source: Option<[f64; 2]>,
     #[serde(default)]
     pub clone_offset: Option<[f64; 2]>,
+    /// The Clone Stamp shows its source under the brush (`clone_overlay`): set with a new source,
+    /// cleared by the first stroke from it.
+    #[serde(default)]
+    pub clone_overlay: bool,
     /// Painting targets the active layer's mask instead of its pixels.
     #[serde(default)]
     pub mask_target: bool,
@@ -851,6 +855,7 @@ impl Default for UiState {
             tool_smoothing: Vec::new(),
             clone_source: None,
             clone_offset: None,
+            clone_overlay: false,
             extras: Extras::default(),
             view: Default::default(),
             actions: Default::default(),

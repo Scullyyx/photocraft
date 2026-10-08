@@ -173,9 +173,21 @@ pub fn finish_object_selection(app: &mut PhotocraftApp, start: [f64; 2], end: [f
 pub fn set_source(app: &mut PhotocraftApp, x: f64, y: f64) {
     app.ui.clone_source = Some([x.round(), y.round()]);
     app.ui.clone_offset = None;
+    app.ui.clone_overlay = true;
     let _ = app.run("cloneSource.set", json!({"source": [x.round(), y.round()]}));
     app.ui.status = format!("Clone source set at {:.0}, {:.0}", x, y);
     app.ui.status_error = false;
+}
+
+/// Where the clone source is sampled for the pointer at `at`: the Clone Source slot's mapping,
+/// else the aligned offset, else the source point itself.
+pub(crate) fn sample_point(app: &PhotocraftApp, at: Option<[f64; 2]>) -> Option<[f64; 2]> {
+    match (crate::preset_panels::clone_sample_point(app, at), app.ui.clone_offset, at, app.ui.clone_source) {
+        (Some(p), ..) => Some(p),
+        (None, Some(off), Some(h), _) => Some([h[0] + off[0], h[1] + off[1]]),
+        (None, None, _, Some(s)) => Some(s),
+        _ => None,
+    }
 }
 
 /// Crosshair where the clone source is sampled from for the current pointer position.
@@ -185,13 +197,7 @@ pub fn draw_source_marker(app: &PhotocraftApp, painter: &egui::Painter, xf: &Vie
     }
     let at =
         app.drag.as_ref().filter(|d| matches!(d.tool, Tool::CloneStamp | Tool::Healing)).and_then(|d| d.points.last().map(|p| [p[0], p[1]])).or(app.hover_doc);
-    let src = match (crate::preset_panels::clone_sample_point(app, at), app.ui.clone_offset, at, app.ui.clone_source) {
-        (Some(p), ..) => Some(p),
-        (None, Some(off), Some(h), _) => Some([h[0] + off[0], h[1] + off[1]]),
-        (None, None, _, Some(s)) => Some(s),
-        _ => None,
-    };
-    let Some(s) = src else { return };
+    let Some(s) = sample_point(app, at) else { return };
     let c = xf.to_screen(s[0] as f32, s[1] as f32);
     for (w, col) in [(3.0, Color32::from_black_alpha(160)), (1.0, Color32::WHITE)] {
         painter.line_segment([c - vec2(7.0, 0.0), c + vec2(7.0, 0.0)], Stroke::new(w, col));
