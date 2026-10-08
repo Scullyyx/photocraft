@@ -28,6 +28,9 @@
 	Open Recent	Terakhir Dibuka
 	Clear Recent Files	Hapus Daftar Berkas Terakhir
 	Close	Tutup
+	Minimize	Minimalkan
+	Maximize	Maksimalkan
+	Restore	Pulihkan
 	Close All	Tutup Semua
 	Close Others	Tutup Lainnya
 	Save	Simpan
@@ -950,6 +953,7 @@
 	Drag a rectangle around the object	Seret persegi panjang di sekeliling objek
 	Drag on the image to add a constraint; Shift for horizontal/vertical; right-click to delete.	Seret pada gambar untuk menambah batasan; Shift untuk horizontal/vertikal; klik kanan untuk menghapus.
 	Drag to move the active shape's path or the Work Path	Seret untuk memindah path bentuk aktif atau Work Path
+	Click: select anchor · Drag: move anchor, handle or segment · {shift}-click: add · {alt}-click: whole subpath	Klik: pilih titik jangkar · Seret: pindahkan titik, gagang, atau segmen · {shift}-klik: tambah · {alt}-klik: seluruh subpath
 	Draw with the Pen tool (P) or make a work path from a selection.	Gambar dengan alat Pen (P) atau buat work path dari seleksi.
 	Drop an image or PSD anywhere to open it.	Jatuhkan gambar atau PSD di mana saja untuk membukanya.
 	Duplicate Layers…	Duplikat Layer…
@@ -1573,6 +1577,7 @@
 	Paint Bucket Tool	Alat Paint Bucket
 	Paints from the document's opening state	Melukis dari kondisi awal dokumen saat dibuka
 	Path Selection Tool	Alat Path Selection
+	Direct Selection Tool	Alat Direct Selection
 	Pattern Overlay	Overlay Pola
 	Pen Pressure	Tekanan Pena
 	Pen Tilt	Kemiringan Pena
@@ -1761,6 +1766,7 @@
 	Light gray	Abu-abu terang
 	Line	Garis
 	Lines	Garis
+	Lossless	Tanpa kehilangan
 	Lowercase extension	Ekstensi huruf kecil
 	Maximize psd compatibility	Maksimalkan kompatibilitas PSD
 	Medium gray	Abu-abu sedang
@@ -2512,3 +2518,35 @@ cameraRaw	Blending	Pembauran
 	Magnetic Lasso Tool	Alat Magnetic Lasso
 	Frequency	Frekuensi
 	Use tablet pressure to change pen width	Gunakan tekanan tablet untuk mengubah lebar pena
+
+# About ▸ Contributors / Models (credits, craftrules standards/contributors.md)
+	About	Tentang
+	Contributors	Kontributor
+	Models	Model
+	Sort	Urutkan
+	Username	Nama pengguna
+	Display name	Nama tampilan
+	Real name	Nama asli
+	Reverse the order	Balik urutan
+	Grab bag	Daftar bebas
+	Table	Tabel
+	Name (A–Z)	Nama (A–Z)
+	Merged PRs	PR yang digabung
+	Commits	Commit
+	Lines added	Baris ditambah
+	Lines deleted	Baris dihapus
+	Line delta	Selisih baris
+	Binary assets added	Berkas biner ditambah
+	Binary assets removed	Berkas biner dihapus
+	First commit	Commit pertama
+	First	Pertama
+	Last commit	Commit terakhir
+	Last	Terakhir
+	Contributors: {contributors} · Commits: {commits}	Kontributor: {contributors} · Commit: {commits}
+	No contributor data was built into this copy.	Salinan ini tidak memuat data kontributor.
+	No model credits were built into this copy.	Salinan ini tidak memuat kredit model.
+	Company	Perusahaan
+	Version	Versi
+	% of all commits	% dari semua commit
+	Lines +/−	Baris +/−
+	@{login}: {prs} PRs, {commits} commits, +{added} / −{deleted} lines (Δ {delta}), +{binAdded} / −{binDeleted} binary assets, {first} – {last}	@{login}: {prs} PR, {commits} commit, +{added} / −{deleted} baris (Δ {delta}), +{binAdded} / −{binDeleted} berkas biner, {first} – {last}

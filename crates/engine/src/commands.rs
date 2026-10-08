@@ -27,7 +27,7 @@ pub struct CommandSpec {
     pub journal: bool,
 }
 
-fn always(_: &Session) -> std::result::Result<(), String> {
+pub(crate) fn always(_: &Session) -> std::result::Result<(), String> {
     Ok(())
 }
 fn has_doc(s: &Session) -> std::result::Result<(), String> {
@@ -981,6 +981,7 @@ fn build() -> Vec<CommandSpec> {
     v.extend(crate::transform_cmds::specs());
     v.extend(crate::float_cmds::specs());
     v.extend(crate::vector_cmds::specs());
+    v.extend(crate::path_edit_cmds::specs());
     v.extend(crate::smartselect_cmds::specs());
     v.extend(crate::cutout_cmds::specs());
     v.extend(crate::symmetry_cmds::specs());
@@ -1007,6 +1008,7 @@ fn build() -> Vec<CommandSpec> {
     v.extend(crate::prefs::specs());
     v.extend(crate::edit_menu_cmds::specs());
     v.extend(crate::fill_key_cmds::specs());
+    v.extend(crate::brush_key_cmds::specs());
     v.extend(crate::stamp_cmds::specs());
     v.extend(crate::align_cmds::specs());
     v.extend(crate::photo_cmds::specs());

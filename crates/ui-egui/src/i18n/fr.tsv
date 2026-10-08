@@ -35,6 +35,9 @@
 	Open Recent	Ouvrir un fichier récent
 	Clear Recent Files	Effacer la liste des fichiers récents
 	Close	Fermer
+	Minimize	Réduire
+	Maximize	Agrandir
+	Restore	Restaurer
 	Close All	Tout fermer
 	Close Others	Fermer les autres
 	Save	Enregistrer
@@ -956,6 +959,7 @@
 	Drag a rectangle around the object	Tracez un rectangle autour de l'objet
 	Drag on the image to add a constraint; Shift for horizontal/vertical; right-click to delete.	Faites glisser sur l'image pour ajouter une contrainte ; Maj pour horizontal/vertical ; clic droit pour supprimer.
 	Drag to move the active shape's path or the Work Path	Faites glisser pour déplacer le tracé de la forme active ou le tracé de travail
+	Click: select anchor · Drag: move anchor, handle or segment · {shift}-click: add · {alt}-click: whole subpath	Clic : sélectionner le point · Glisser : déplacer point, poignée ou segment · {shift}-clic : ajouter · {alt}-clic : sous-tracé entier
 	Draw with the Pen tool (P) or make a work path from a selection.	Dessinez avec l'outil Plume (P) ou créez un tracé de travail à partir d'une sélection.
 	Drop an image or PSD anywhere to open it.	Déposez une image ou un PSD n'importe où pour l'ouvrir.
 	Duplicate Layers…	Dupliquer les calques…
@@ -1579,6 +1583,7 @@
 	Paint Bucket Tool	Outil Pot de peinture
 	Paints from the document's opening state	Peint à partir de l'état d'ouverture du document
 	Path Selection Tool	Outil Sélection de tracé
+	Direct Selection Tool	Outil Sélection directe
 	Pattern Overlay	Superposition de motif
 	Pen Pressure	Pression du stylet
 	Pen Tilt	Inclinaison du stylet
@@ -1767,6 +1772,7 @@
 	Light gray	Gris clair
 	Line	Ligne
 	Lines	Lignes
+	Lossless	Sans perte
 	Lowercase extension	Extension en minuscules
 	Maximize psd compatibility	Maximiser la compatibilité PSD
 	Medium gray	Gris moyen
@@ -2525,3 +2531,35 @@ cameraRaw	Blending	Fusion
 	Magnetic Lasso Tool	Outil Lasso magnétique
 	Frequency	Fréquence
 	Use tablet pressure to change pen width	Utiliser la pression de la tablette pour modifier la largeur de la plume
+
+# About ▸ Contributors / Models (credits, craftrules standards/contributors.md)
+	About	À propos
+	Contributors	Contributeurs
+	Models	Modèles
+	Sort	Trier
+	Username	Nom d'utilisateur
+	Display name	Nom affiché
+	Real name	Nom réel
+	Reverse the order	Inverser l'ordre
+	Grab bag	Vrac
+	Table	Tableau
+	Name (A–Z)	Nom (A–Z)
+	Merged PRs	PR fusionnées
+	Commits	Commits
+	Lines added	Lignes ajoutées
+	Lines deleted	Lignes supprimées
+	Line delta	Solde de lignes
+	Binary assets added	Fichiers binaires ajoutés
+	Binary assets removed	Fichiers binaires supprimés
+	First commit	Premier commit
+	First	Premier
+	Last commit	Dernier commit
+	Last	Dernier
+	Contributors: {contributors} · Commits: {commits}	Contributeurs : {contributors} · Commits : {commits}
+	No contributor data was built into this copy.	Aucune donnée de contributeurs n'est incluse dans cette copie.
+	No model credits were built into this copy.	Aucun crédit de modèle n'est inclus dans cette copie.
+	Company	Société
+	Version	Version
+	% of all commits	% de tous les commits
+	Lines +/−	Lignes +/−
+	@{login}: {prs} PRs, {commits} commits, +{added} / −{deleted} lines (Δ {delta}), +{binAdded} / −{binDeleted} binary assets, {first} – {last}	@{login} : {prs} PR, {commits} commits, +{added} / −{deleted} lignes (Δ {delta}), +{binAdded} / −{binDeleted} fichiers binaires, {first} – {last}

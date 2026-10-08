@@ -29,6 +29,9 @@
 	Open Recent	Archivos recientes
 	Clear Recent Files	Vaciar archivos recientes
 	Close	Cerrar
+	Minimize	Minimizar
+	Maximize	Maximizar
+	Restore	Restaurar
 	Close All	Cerrar todo
 	Close Others	Cerrar otros
 	Save	Guardar
@@ -966,6 +969,7 @@
 	Drag a rectangle around the object	Arrastre un rectángulo alrededor del objeto
 	Drag on the image to add a constraint; Shift for horizontal/vertical; right-click to delete.	Arrastre sobre la imagen para añadir una restricción; Mayús para horizontal/vertical; clic derecho para eliminar.
 	Drag to move the active shape's path or the Work Path	Arrastre para mover el trazado de la forma activa o el Trazado de trabajo
+	Click: select anchor · Drag: move anchor, handle or segment · {shift}-click: add · {alt}-click: whole subpath	Clic: seleccionar punto · Arrastrar: mover punto, manejador o segmento · {shift}-clic: añadir · {alt}-clic: subtrazado completo
 	Draw with the Pen tool (P) or make a work path from a selection.	Dibuja con la herramienta Pluma (P) o crea un trazado de trabajo a partir de una selección.
 	Drop an image or PSD anywhere to open it.	Suelte una imagen o un PSD en cualquier lugar para abrirlo.
 	Native file drag-and-drop is unavailable	El arrastrar y soltar archivos de forma nativa no está disponible en Wayland
@@ -1595,6 +1599,7 @@
 	Paint Bucket Tool	Herramienta Bote de pintura
 	Paints from the document's opening state	Pinta a partir del estado en que se abrió el documento.
 	Path Selection Tool	Herramienta Selección de trazado
+	Direct Selection Tool	Herramienta Selección directa
 	Pattern Overlay	Superposición de patrón
 	Pen Pressure	Presión del lápiz
 	Pen Tilt	Inclinación del lápiz
@@ -1789,6 +1794,7 @@
 	Light gray	Gris claro
 	Line	Línea
 	Lines	Líneas
+	Lossless	Sin pérdida
 	Lowercase extension	Extensión en minúsculas
 	Maximize psd compatibility	Maximizar la compatibilidad de PSD
 	Medium gray	Gris medio
@@ -2165,3 +2171,35 @@ cameraRaw	Amount	Cantidad
 	Magnetic Lasso Tool	Herramienta Lazo magnético
 	Frequency	Frecuencia
 	Use tablet pressure to change pen width	Usar la presión de la tableta para cambiar la anchura del lápiz
+
+# About ▸ Contributors / Models (credits, craftrules standards/contributors.md)
+	About	Acerca de
+	Contributors	Colaboradores
+	Models	Modelos
+	Sort	Ordenar
+	Username	Nombre de usuario
+	Display name	Nombre visible
+	Real name	Nombre real
+	Reverse the order	Invertir el orden
+	Grab bag	Lista libre
+	Table	Tabla
+	Name (A–Z)	Nombre (A–Z)
+	Merged PRs	PR fusionadas
+	Commits	Commits
+	Lines added	Líneas añadidas
+	Lines deleted	Líneas eliminadas
+	Line delta	Balance de líneas
+	Binary assets added	Archivos binarios añadidos
+	Binary assets removed	Archivos binarios eliminados
+	First commit	Primer commit
+	First	Primero
+	Last commit	Último commit
+	Last	Último
+	Contributors: {contributors} · Commits: {commits}	Colaboradores: {contributors} · Commits: {commits}
+	No contributor data was built into this copy.	Esta copia no incluye datos de colaboradores.
+	No model credits were built into this copy.	Esta copia no incluye créditos de modelos.
+	Company	Empresa
+	Version	Versión
+	% of all commits	% de todos los commits
+	Lines +/−	Líneas +/−
+	@{login}: {prs} PRs, {commits} commits, +{added} / −{deleted} lines (Δ {delta}), +{binAdded} / −{binDeleted} binary assets, {first} – {last}	@{login}: {prs} PR, {commits} commits, +{added} / −{deleted} líneas (Δ {delta}), +{binAdded} / −{binDeleted} archivos binarios, {first} – {last}

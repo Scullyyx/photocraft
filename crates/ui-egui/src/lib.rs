@@ -21,6 +21,7 @@ pub mod adjust_preview;
 pub mod adjust_ui;
 pub mod analysis_ui;
 pub mod artboard_ui;
+mod brand;
 pub mod brush_panel;
 pub mod brush_picker;
 pub mod brush_preview;
@@ -41,8 +42,10 @@ pub mod color_picker_ui;
 pub mod color_range_ui;
 pub mod comps_ui;
 pub mod control;
+pub mod credits;
 pub mod crop_ui;
 pub mod dialogs;
+pub mod direct_select;
 pub mod discard_ui;
 pub mod distort_ui;
 pub mod doc_props_ui;
@@ -119,6 +122,7 @@ mod tab_strip;
 pub mod theme;
 pub mod tiff_options_ui;
 mod timeline_ui;
+mod titlebar;
 pub mod tone;
 pub mod tool_feedback;
 pub mod transform_tex;
@@ -153,6 +157,10 @@ pub type ImportFn = Box<dyn Fn(&str, &[u8]) -> Result<(Document, Vec<String>), S
 pub struct ExportSettings {
     /// JPEG quality 1–100 (None = codec default).
     pub jpeg_quality: Option<u8>,
+    /// WebP: lossless (VP8L) rather than lossy (VP8 at [`Self::webp_quality`]).
+    pub webp_lossless: bool,
+    /// Lossy WebP quality 1–100 (None = codec default).
+    pub webp_quality: Option<u8>,
     /// TIFF: keep the layers (Photoshop layer data); `false` is "Discard Layers and Save a Copy".
     pub tiff_layers: bool,
     /// Embed the document's whole XMP packet. `true` by default (Save As keeps the metadata);
@@ -163,7 +171,7 @@ pub struct ExportSettings {
 
 impl Default for ExportSettings {
     fn default() -> Self {
-        ExportSettings { jpeg_quality: None, tiff_layers: true, xmp_all: true }
+        ExportSettings { jpeg_quality: None, webp_lossless: true, webp_quality: None, tiff_layers: true, xmp_all: true }
     }
 }
 
@@ -336,6 +344,9 @@ pub struct PhotocraftApp {
     styled: bool,
     /// Whether the window uses an integrated (transparent) macOS title bar.
     pub integrated_titlebar: bool,
+    /// Windows and Linux: the window has no OS decorations and the app's top bar is the title bar
+    /// (caption buttons, window dragging and edge resizing, `titlebar`).
+    pub custom_titlebar: bool,
     fonts_ready: bool,
     /// Screen rect of the main canvas last frame (for overlays and the navigator).
     pub last_canvas_rect: egui::Rect,
@@ -472,6 +483,7 @@ impl PhotocraftApp {
             frame: 0,
             styled: false,
             integrated_titlebar: false,
+            custom_titlebar: false,
             fonts_ready: false,
             last_canvas_rect: egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(800.0, 600.0)),
             drop_canvas_rect: None,
@@ -1072,6 +1084,9 @@ impl eframe::App for PhotocraftApp {
         canvas::extra_windows(self, &ctx);
         notices::show(self, &ctx);
         gpu_status::show_fallback(self, &ctx);
+        if self.custom_titlebar {
+            titlebar::resize_zones(ui);
+        }
         // A device lost while drawing this frame: switch to the CPU canvas before the next one.
         gpu_status::check(self, &ctx);
         self.automation_input = false;
