@@ -402,8 +402,11 @@ fn dispatch(app: &mut PhotocraftApp, ctx: &egui::Context, req: &ControlRequest) 
             None => err("no such dialog"),
         },
         "ui.window.open" => {
-            if let Some(d) = u("document") {
-                app.session.set_active(d as usize);
+            if let Some(v) = p.get("document") {
+                let Some(d) = v.as_u64() else { return err("`document` must be an integer") };
+                if !app.session.set_active(d as usize) {
+                    return err(format!("invalid document index {d}"));
+                }
             }
             wrap(crate::menus::invoke(app, ctx, "window.newWindowForDocument", json!({})))
         }
@@ -1005,5 +1008,14 @@ mod tests {
         app.session.execute("file.new", json!({"width": 4, "height": 4})).unwrap();
         let r = app.run("actions.play", json!({"action": "Open"})).unwrap();
         assert_eq!(r["ran"], 1, "{r}");
+    }
+
+    #[test]
+    fn window_open_rejects_out_of_range_document() {
+        let mut app = PhotocraftApp::new(photocraft_engine::Session::new(), crate::Services::default());
+        let ctx = egui::Context::default();
+        let r = call(&mut app, &ctx, "ui.window.open", json!({"document": 99}));
+        assert_eq!(r["ok"], false, "{r}");
+        assert!(r["error"].as_str().unwrap().contains("invalid document index 99"), "{r}");
     }
 }

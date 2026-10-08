@@ -70,6 +70,10 @@ fn from_layers_and_group_then_compose_clips() {
         assert_eq!(doc(&s).layer(gid).unwrap().artboard().unwrap().rect.x0, 45);
         assert_eq!(doc(&s).layer(red).unwrap().surface().unwrap().content_bounds().x0, 45);
         // Background and name.
+        s.execute("layer.artboard.set", json!({"background": "white"})).unwrap();
+        assert_eq!(doc(&s).layer(gid).unwrap().artboard().unwrap().background, ArtboardBackground::White);
+        s.execute("layer.artboard.set", json!({"background": "custom"})).unwrap();
+        assert!(matches!(doc(&s).layer(gid).unwrap().artboard().unwrap().background, ArtboardBackground::Custom(_)));
         s.execute("layer.artboard.set", json!({"background": "custom", "color": "#00ff00", "name": "Green"})).unwrap();
         let l = doc(&s).layer(gid).unwrap();
         assert_eq!(l.name, "Green");

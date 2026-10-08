@@ -1334,13 +1334,32 @@ pub fn confirm(app: &mut PhotocraftApp, f: &Map<String, Value>) -> Result<Value,
             // commands included, which the engine doesn't know).
             let mut ov: BTreeMap<String, String> = serde_json::from_value(overrides).unwrap_or_default();
             let items = shortcut_items(app);
-            let changed: Vec<(String, String)> = ov.iter().filter(|(_, s)| !s.is_empty()).map(|(k, s)| (k.clone(), s.clone())).collect();
-            for (id, sc) in changed {
+            let before_shortcuts = app.session.prefs().shortcuts.clone();
+            let changed: Vec<(String, String)> = ov
+                .iter()
+                .filter(|(id, s)| !s.is_empty() && before_shortcuts.get(*id).map(String::as_str) != Some(s.as_str()))
+                .map(|(k, s)| (k.clone(), s.clone()))
+                .collect();
+            let to_check = if changed.is_empty() {
+                ov.iter().filter(|(_, s)| !s.is_empty()).map(|(k, s)| (k.clone(), s.clone())).collect()
+            } else {
+                changed
+            };
+            for (id, sc) in to_check {
+                if ov.get(&id).is_some_and(|s| s.is_empty()) {
+                    continue;
+                }
+                let norm = prefs::normalize_shortcut(&sc);
                 for (other, _, _, def) in &items {
-                    if *other != id
-                        && !ov.contains_key(other)
-                        && def.as_deref().and_then(prefs::normalize_shortcut).as_deref() == prefs::normalize_shortcut(&sc).as_deref()
-                    {
+                    if *other == id {
+                        continue;
+                    }
+                    let other_sc = match ov.get(other) {
+                        Some(s) if s.is_empty() => None,
+                        Some(s) => Some(s.as_str()),
+                        None => def.as_deref(),
+                    };
+                    if other_sc.and_then(prefs::normalize_shortcut) == norm {
                         ov.insert(other.clone(), String::new());
                     }
                 }
@@ -1892,6 +1911,15 @@ mod tests {
         assert!(items.iter().any(|i| i.id == "layer.new.layer" && i.shortcut.as_deref() == Some("Cmd+O")));
         assert!(items.iter().any(|i| i.id == "file.open" && i.shortcut.is_none()));
         assert_eq!(shortcut_text(egui::Key::K, egui::Modifiers { command: true, shift: true, ..Default::default() }).as_deref(), Some("Cmd+Shift+K"));
+
+        // Re-assigning a shortcut already held by a custom override takes it from the override.
+        let id2 = crate::menus::invoke(&mut app, &ctx, "edit.keyboardShortcuts", json!({})).unwrap()["dialog"].as_u64().unwrap();
+        let mut cur_overrides = app.session.prefs().shortcuts.clone();
+        cur_overrides.insert("layer.new.group".into(), "Cmd+O".into());
+        app.ui.dialog_mut(id2).unwrap().fields.insert("overrides".into(), json!(cur_overrides));
+        crate::dialogs::confirm(&mut app, id2).unwrap();
+        assert_eq!(effective_shortcut(&app, "layer.new.group", None).as_deref(), Some("Cmd+O"));
+        assert_eq!(effective_shortcut(&app, "layer.new.layer", None), None, "taken from layer.new.layer override");
     }
 
     #[test]

@@ -280,7 +280,13 @@ pub fn clone_stroke(scene: &Scene, surf: &mut Surface, source: [f64; 2], points:
     let n = fmt.channels();
     let mut dabs = 0;
     for p in points {
+        if !p[0].is_finite() || !p[1].is_finite() {
+            continue;
+        }
         let mc = metric(&hd_inv, lud, lvd, *p);
+        if !mc[0].is_finite() || !mc[1].is_finite() {
+            continue;
+        }
         // Image-space footprint: map a metric circle's bounding points.
         let mut bb = [f64::MAX, f64::MAX, f64::MIN, f64::MIN];
         for k in 0..16 {
@@ -289,7 +295,21 @@ pub fn clone_stroke(scene: &Scene, surf: &mut Surface, source: [f64; 2], points:
             let (x, y) = hd.apply(u, v);
             bb = [bb[0].min(x), bb[1].min(y), bb[2].max(x), bb[3].max(y)];
         }
-        let area = Rect::new(bb[0].floor() as i32, bb[1].floor() as i32, bb[2].ceil() as i32 + 1, bb[3].ceil() as i32 + 1);
+        if !bb.iter().all(|v| v.is_finite()) || bb[2] < bb[0] || bb[3] < bb[1] {
+            continue;
+        }
+        if bb[2] - bb[0] > 4096.0 || bb[3] - bb[1] > 4096.0 {
+            continue;
+        }
+        const LIMIT: f64 = 1_000_000.0;
+        if bb[0] < -LIMIT || bb[1] < -LIMIT || bb[2] > LIMIT || bb[3] > LIMIT {
+            continue;
+        }
+        let x0 = bb[0].floor() as i32;
+        let y0 = bb[1].floor() as i32;
+        let x1 = (bb[2].ceil() as i32).saturating_add(1);
+        let y1 = (bb[3].ceil() as i32).saturating_add(1);
+        let area = Rect::new(x0, y0, x1, y1);
         if area.is_empty() || area.width() > 4096 || area.height() > 4096 {
             continue;
         }
@@ -400,5 +420,9 @@ mod tests {
         let n = clone_stroke(&sc, &mut s, [sx, sy], &[[dx, dy]], 10.0, 0.8, 1.0);
         assert_eq!(n, 1);
         assert!(s.rgba(dx as i32, dy as i32)[0] > 0.8, "{:?}", s.rgba(dx as i32, dy as i32));
+
+        // Hostile / out of range points do not panic.
+        let far_pts = [[1e20, 1e20], [f64::NAN, f64::INFINITY], [-1e20, -1e20]];
+        let _ = clone_stroke(&sc, &mut s, [sx, sy], &far_pts, 10.0, 0.8, 1.0);
     }
 }
