@@ -12,10 +12,10 @@ use std::rc::Rc;
 use std::sync::Arc;
 
 /// Everything File › Open reads: PhotoCraft and Photoshop documents, flat images, and Photoshop
-/// brushes (.abr) and gradients (.grd), which go to the preset libraries.
+/// brushes (.abr), gradients (.grd) and swatches (.aco, .ase), which go to the preset libraries.
 const OPEN_EXTS: &[&str] = &[
     "pcraft", "psd", "psb", "psdt", "png", "jpg", "jpeg", "tif", "tiff", "webp", "gif", "bmp", "tga", "ico", "qoi", "exr", "hdr", "pbm", "pgm", "ppm", "pam",
-    "pfm", "heic", "heif", "hif", "dng", "cr2", "cr3", "nef", "nrw", "arw", "pef", "orf", "rw2", "raf", "abr", "grd",
+    "pfm", "heic", "heif", "hif", "dng", "cr2", "cr3", "nef", "nrw", "arw", "pef", "orf", "rw2", "raf", "abr", "grd", "aco", "ase",
 ];
 
 /// File › Save As formats: (filter name, extensions). The filter matching the suggested name's
@@ -32,9 +32,16 @@ const SAVE_FILTERS: &[(&str, &[&str])] = &[
     ("OpenEXR", &["exr"]),
 ];
 
+/// Non-document files the shell saves (Swatches panel exports): offered alone, so the dialog
+/// never swaps their extension for a document format's.
+const OTHER_SAVE_FILTERS: &[(&str, &[&str])] = &[("Color Swatches", &["aco"]), ("Swatch Exchange", &["ase"])];
+
 /// [`SAVE_FILTERS`] with the one for `suggested`'s extension first.
 fn save_filters(suggested: &str) -> Vec<(&'static str, &'static [&'static str])> {
     let ext = Path::new(suggested).extension().map(|e| e.to_string_lossy().to_ascii_lowercase()).unwrap_or_default();
+    if let Some(f) = OTHER_SAVE_FILTERS.iter().find(|(_, exts)| exts.contains(&ext.as_str())) {
+        return vec![*f];
+    }
     let mut v = SAVE_FILTERS.to_vec();
     if let Some(i) = v.iter().position(|(_, exts)| exts.contains(&ext.as_str())) {
         let f = v.remove(i);

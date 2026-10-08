@@ -119,6 +119,7 @@ pub mod state;
 pub mod stroke_constraint;
 pub mod stroke_trail;
 pub mod stylus;
+pub mod swatches_ui;
 mod tab_strip;
 pub mod theme;
 pub mod tiff_options_ui;

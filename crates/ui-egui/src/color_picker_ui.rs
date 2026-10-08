@@ -302,6 +302,11 @@ pub fn body(ui: &mut egui::Ui, f: &mut Map<String, Value>) {
                 f.insert("__webOnly".into(), json!(web));
                 set_rgb(f, rgb, Keep::Nothing);
             }
+            ui.add_space(6.0);
+            // Handled by the dialog host, which has the app (`take_add_swatch`).
+            if widgets::secondary_button(ui, tl!("Add to Swatches"), 0.0).clicked() {
+                f.insert("__addSwatch".into(), json!(true));
+            }
         });
         ui.add_space(10.0);
         ui.vertical(|ui| fields(ui, f, &mode, &now));
@@ -394,6 +399,13 @@ fn fields(ui: &mut egui::Ui, f: &mut Map<String, Value>, mode: &str, now: &Compo
     }
     if let Some((c, keep)) = edit {
         set_rgb(f, c, keep);
+    }
+}
+
+/// Add to Swatches was clicked: add the picked colour to the Swatches panel.
+pub fn take_add_swatch(app: &mut PhotocraftApp, f: &mut Map<String, Value>) {
+    if f.remove("__addSwatch").and_then(|v| v.as_bool()) == Some(true) {
+        crate::swatches_ui::add_from_picker(app, f);
     }
 }
 
