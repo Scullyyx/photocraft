@@ -54,7 +54,7 @@ pub fn wayland_file_drop_guidance(app: &mut PhotocraftApp) {
         app,
         tl!("Native file drag-and-drop is unavailable"),
         vec![
-            tl!("Native file drag-and-drop is not supported on Wayland yet. Use File › Open, or run PhotoCraft under XWayland with `WAYLAND_DISPLAY= photocraft`.").into(),
+            tl!("Native file drag-and-drop is not supported on Wayland yet. Use File › Open, or set Preferences › Performance › Linux display server to X11 and restart PhotoCraft (it then runs through XWayland).").into(),
         ],
         false,
         Some(WAYLAND_FILE_DROP_DISMISSED),
@@ -153,7 +153,7 @@ mod tests {
         assert!(guidance.contains("File › Open"));
         assert!(!guidance.contains("Ctrl+V"));
         assert!(guidance.contains("XWayland"));
-        assert!(guidance.contains("WAYLAND_DISPLAY= photocraft"));
+        assert!(guidance.contains("Linux display server to X11"));
         assert_eq!(app.ui.notices[0].dismiss_pref.as_deref(), Some(WAYLAND_FILE_DROP_DISMISSED));
         for i in 0..MAX_NOTICES {
             post(&mut app, format!("Transient {i}"), Vec::new(), false, None);

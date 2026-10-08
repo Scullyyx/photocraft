@@ -1961,6 +1961,8 @@
 	CPU (no GPU acceleration)	CPU (tanpa akselerasi GPU)
 	DirectX 12	DirectX 12
 	GPU backend	Backend GPU
+	Linux display server	Server tampilan Linux
+	X11	X11
 	Metal	Metal
 	OpenGL	OpenGL
 	Use tablet pressure	Pakai tekanan tablet
@@ -2444,7 +2446,7 @@
 	Floating point	Titik mengambang
 	Use Global Light	Gunakan Cahaya Global
 	Native file drag-and-drop is unavailable	Seret dan lepas berkas native tidak tersedia
-	Native file drag-and-drop is not supported on Wayland yet. Use File › Open, or run PhotoCraft under XWayland with `WAYLAND_DISPLAY= photocraft`.	Seret dan lepas berkas native belum didukung di Wayland. Gunakan Berkas › Buka, atau jalankan PhotoCraft di XWayland dengan `WAYLAND_DISPLAY= photocraft`.
+	Native file drag-and-drop is not supported on Wayland yet. Use File › Open, or set Preferences › Performance › Linux display server to X11 and restart PhotoCraft (it then runs through XWayland).	Seret dan lepas berkas native belum didukung di Wayland. Gunakan Berkas › Buka, atau atur Preferensi › Performa › Server tampilan Linux ke X11 lalu mulai ulang PhotoCraft (aplikasi lalu berjalan melalui XWayland).
 	Use File › Open to open an image.	Gunakan Berkas › Buka untuk membuka gambar.
 	Mixer Brush Tool	Alat Kuas Pencampur
 	Invalid {mode} profile	Profil {mode} tidak valid

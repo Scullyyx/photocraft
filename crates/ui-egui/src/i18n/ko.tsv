@@ -1962,6 +1962,8 @@
 	CPU (no GPU acceleration)	CPU(GPU 가속 없음)
 	DirectX 12	DirectX 12
 	GPU backend	GPU 백엔드
+	Linux display server	Linux 디스플레이 서버
+	X11	X11
 	Metal	Metal
 	OpenGL	OpenGL
 	Use tablet pressure	태블릿 필압 사용
@@ -1985,7 +1987,7 @@
 	Floating point	부동 소수점
 	Use Global Light	전체 조명 사용
 	Native file drag-and-drop is unavailable	파일 드래그 앤 드롭을 사용할 수 없습니다
-	Native file drag-and-drop is not supported on Wayland yet. Use File › Open, or run PhotoCraft under XWayland with `WAYLAND_DISPLAY= photocraft`.	Wayland에서는 아직 파일 드래그 앤 드롭을 지원하지 않습니다. 파일 › 열기를 사용하거나 `WAYLAND_DISPLAY= photocraft`로 XWayland에서 PhotoCraft를 실행하세요.
+	Native file drag-and-drop is not supported on Wayland yet. Use File › Open, or set Preferences › Performance › Linux display server to X11 and restart PhotoCraft (it then runs through XWayland).	Wayland에서는 아직 파일 드래그 앤 드롭을 지원하지 않습니다. 파일 › 열기를 사용하거나, 환경 설정 › 성능 › Linux 디스플레이 서버를 X11로 설정한 뒤 PhotoCraft를 다시 시작하세요(XWayland를 통해 실행됩니다).
 	Use File › Open to open an image.	파일 › 열기에서 이미지를 여세요.
 	Invalid {mode} profile	유효하지 않은 {mode} 프로파일
 	Unnamed {mode} profile	이름 없는 {mode} 프로파일
