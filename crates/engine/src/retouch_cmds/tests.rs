@@ -206,6 +206,22 @@ fn dodge_brightens_midtones_more_than_shadows_and_burn_darkens() {
 }
 
 #[test]
+fn dodge_does_not_compound_within_a_stroke() {
+    // Going back over the same spot in one stroke tones it no further; a second stroke does.
+    let once = |pts: Value| {
+        let mut s = session(80, 20, 8, "rgb");
+        paint_layer(&mut s, |_, _| [0.5, 0.5, 0.5, 1.0]);
+        s.execute("paint.dodge", json!({"points": pts, "size": 10, "hardness": 100})).unwrap();
+        (rgba(&s, 40, 10)[0], s)
+    };
+    let (single, mut s) = once(json!([[5, 10], [75, 10]]));
+    let (scrubbed, _) = once(json!([[5, 10], [75, 10], [5, 10], [75, 10]]));
+    assert!(single > 0.55 && (single - scrubbed).abs() < 1.0 / 255.0, "{single} {scrubbed}");
+    s.execute("paint.dodge", json!({"points": [[5, 10], [75, 10]], "size": 10, "hardness": 100})).unwrap();
+    assert!(rgba(&s, 40, 10)[0] > single + 0.02);
+}
+
+#[test]
 fn sponge_reduces_and_increases_saturation() {
     for depth in DEPTHS {
         let mut s = session(40, 20, depth, "rgb");

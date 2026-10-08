@@ -608,6 +608,46 @@ fn color_dab(fmt: &PixelFormat, work: &mut Region, fp: &Footprint, strength: f32
     }
 }
 
+/// Dodge and Burn: a stroke tones each pixel once, from its original colour, by the stroke's
+/// highest coverage there (`toned`, the full-exposure colour, mixed in by coverage). Overlapping
+/// dabs and passes within one stroke don't compound, so the result is even; a new stroke builds
+/// on the last.
+fn tone_stroke(fmt: PixelFormat, toned: impl Fn([f32; 3]) -> [f32; 3] + 'static) -> DabEffect {
+    // Per touched pixel: the coverage applied so far and the original straight RGBA.
+    let mut seen: std::collections::HashMap<(i32, i32), (f32, [f32; 4])> = std::collections::HashMap::new();
+    let a = alpha_index(&fmt);
+    let n = fmt.channels();
+    Box::new(move |work, fp| {
+        let r = fp.rect.intersect(&work.rect);
+        let mut enc = [0.0f32; 8];
+        for y in r.y0..r.y1 {
+            for x in r.x0..r.x1 {
+                let k = fp.at(x, y).clamp(0.0, 1.0);
+                if k <= 0.0 {
+                    continue;
+                }
+                let (prev, o) = match seen.get(&(x, y)) {
+                    Some(&v) => v,
+                    None => (0.0, to_rgba(&fmt, work.px(x, y))),
+                };
+                if k <= prev {
+                    continue;
+                }
+                seen.insert((x, y), (k, o));
+                let t = toned([o[0], o[1], o[2]]);
+                let m = [o[0] + (t[0] - o[0]) * k, o[1] + (t[1] - o[1]) * k, o[2] + (t[2] - o[2]) * k];
+                from_rgba_into(&fmt, [m[0], m[1], m[2], o[3]], &mut enc);
+                let px = work.px_mut(x, y);
+                for c in 0..n {
+                    if Some(c) != a {
+                        px[c] = enc[c];
+                    }
+                }
+            }
+        }
+    })
+}
+
 fn tone_range(p: &Value, cmd: &str) -> Result<ToneRange> {
     match string(p, "range", "midtones") {
         "shadows" => Ok(ToneRange::Shadows),
@@ -682,9 +722,7 @@ impl DabTool {
     fn effect(&self, fmt: PixelFormat, spacing: f32) -> DabEffect {
         let sp = spacing;
         match self.clone() {
-            Self::Tone { burn, range, exposure, protect } => {
-                Box::new(move |work, fp| color_dab(&fmt, work, fp, exposure, sp, |c, k| dodge_burn(c, k, range, burn, protect)))
-            }
+            Self::Tone { burn, range, exposure, protect } => tone_stroke(fmt, move |c| dodge_burn(c, exposure, range, burn, protect)),
             // Flow is already in each dab's coverage; a full-flow pass moves colours half-way.
             Self::Sponge { saturate, vibrance } => Box::new(move |work, fp| color_dab(&fmt, work, fp, 0.5, sp, |c, k| sponge(c, k, saturate, vibrance))),
             Self::Focus { sharpen, strength, protect, sigma } => {
