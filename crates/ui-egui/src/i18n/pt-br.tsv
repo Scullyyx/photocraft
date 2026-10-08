@@ -2571,3 +2571,16 @@ cameraRaw	Whites	Brancos
 	% of all commits	% de todos os commits
 	Lines +/−	Linhas +/−
 	@{login}: {prs} PRs, {commits} commits, +{added} / −{deleted} lines (Δ {delta}), +{binAdded} / −{binDeleted} binary assets, {first} – {last}	@{login}: {prs} PRs, {commits} commits, +{added} / −{deleted} linhas (Δ {delta}), +{binAdded} / −{binDeleted} arquivos binários, {first} – {last}
+
+# Fill dialog, layer style contours and Image Size
+	Contents:	Conteúdo:
+	Custom Pattern:	Padrão personalizado:
+	Foreground Color	Cor de primeiro plano
+	Color…	Cor…
+	50% Gray	Cinza 50%
+	{size} (was {old})	{size} (antes {old})
+	Cone	Cone
+	Cone (Inverted)	Cone (invertido)
+	Domed	Abaulado
+	Domed (Inverted)	Abaulado (invertido)
+	Diagonal (Descending)	Diagonal (descendente)
