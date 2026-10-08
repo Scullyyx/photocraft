@@ -2565,3 +2565,9 @@ cameraRaw	Whites	Brancos
 	% of all commits	% de todos os commits
 	Lines +/−	Linhas +/−
 	@{login}: {prs} PRs, {commits} commits, +{added} / −{deleted} lines (Δ {delta}), +{binAdded} / −{binDeleted} binary assets, {first} – {last}	@{login}: {prs} PRs, {commits} commits, +{added} / −{deleted} linhas (Δ {delta}), +{binAdded} / −{binDeleted} arquivos binários, {first} – {last}
+
+	Eyedroppers:	Conta-gotas:
+	Set Black Point	Definir ponto preto
+	Set Neutral Gray Point	Definir ponto cinza neutro
+	Set White Point	Definir ponto branco
+	Unavailable in this color mode	Indisponível neste modo de cor

@@ -2558,3 +2558,9 @@ cameraRaw	Blending	Fusion
 	% of all commits	% de tous les commits
 	Lines +/−	Lignes +/−
 	@{login}: {prs} PRs, {commits} commits, +{added} / −{deleted} lines (Δ {delta}), +{binAdded} / −{binDeleted} binary assets, {first} – {last}	@{login} : {prs} PR, {commits} commits, +{added} / −{deleted} lignes (Δ {delta}), +{binAdded} / −{binDeleted} fichiers binaires, {first} – {last}
+
+	Eyedroppers:	Pipettes :
+	Set Black Point	Définir le point noir
+	Set Neutral Gray Point	Définir le point gris neutre
+	Set White Point	Définir le point blanc
+	Unavailable in this color mode	Indisponible dans ce mode colorimétrique

@@ -2126,3 +2126,9 @@ cameraRaw	Color	Barvy
 	% of all commits	% všech commitů
 	Lines +/−	Řádky +/−
 	@{login}: {prs} PRs, {commits} commits, +{added} / −{deleted} lines (Δ {delta}), +{binAdded} / −{binDeleted} binary assets, {first} – {last}	@{login}: PR: {prs}, commity: {commits}, řádky +{added} / −{deleted} (Δ {delta}), binární soubory +{binAdded} / −{binDeleted}, {first} – {last}
+
+	Eyedroppers:	Kapátka:
+	Set Black Point	Nastavit černý bod
+	Set Neutral Gray Point	Nastavit neutrální šedý bod
+	Set White Point	Nastavit bílý bod
+	Unavailable in this color mode	V tomto barevném režimu není k dispozici

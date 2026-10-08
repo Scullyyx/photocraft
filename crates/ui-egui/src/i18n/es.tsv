@@ -2198,3 +2198,9 @@ cameraRaw	Amount	Cantidad
 	% of all commits	% de todos los commits
 	Lines +/−	Líneas +/−
 	@{login}: {prs} PRs, {commits} commits, +{added} / −{deleted} lines (Δ {delta}), +{binAdded} / −{binDeleted} binary assets, {first} – {last}	@{login}: {prs} PR, {commits} commits, +{added} / −{deleted} líneas (Δ {delta}), +{binAdded} / −{binDeleted} archivos binarios, {first} – {last}
+
+	Eyedroppers:	Cuentagotas:
+	Set Black Point	Definir punto negro
+	Set Neutral Gray Point	Definir punto gris neutro
+	Set White Point	Definir punto blanco
+	Unavailable in this color mode	No disponible en este modo de color
