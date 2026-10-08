@@ -123,28 +123,35 @@ fn erode(w: usize, h: usize, m: &[bool], r: usize) -> Vec<bool> {
     if r == 0 {
         return m.to_vec();
     }
+    let set = |x: usize, y: usize| m.get(y * w + x).copied().unwrap_or(false);
+    // Summed-area table, `(w+1) × (h+1)`: row `y + 1` is row `y`'s running sums on top of row `y`.
     let w1 = w + 1;
-    let mut sat = vec![0u32; w1 * (h + 1)];
+    let mut sat = vec![0u32; w1];
     for y in 0..h {
         let mut row = 0u32;
-        for x in 0..w {
-            row += u32::from(m.get(y * w + x).copied().unwrap_or(false));
-            sat[(y + 1) * w1 + x + 1] = sat[y * w1 + x + 1] + row;
-        }
+        let next: Vec<u32> = (0..w1)
+            .map(|x| {
+                if x > 0 {
+                    row += u32::from(set(x - 1, y));
+                }
+                sat.get(y * w1 + x).copied().unwrap_or(0) + row
+            })
+            .collect();
+        sat.extend(next);
     }
-    let mut out = vec![false; w * h];
-    for y in 0..h {
-        let (y0, y1) = (y.saturating_sub(r), (y + r + 1).min(h));
-        for x in 0..w {
-            if !m.get(y * w + x).copied().unwrap_or(false) {
-                continue;
+    let at = |x: usize, y: usize| sat.get(y * w1 + x).copied().unwrap_or(0);
+    (0..h)
+        .flat_map(|y| (0..w).map(move |x| (x, y)))
+        .map(|(x, y)| {
+            if !set(x, y) {
+                return false;
             }
             let (x0, x1) = (x.saturating_sub(r), (x + r + 1).min(w));
-            let set = sat[y1 * w1 + x1] + sat[y0 * w1 + x0] - sat[y0 * w1 + x1] - sat[y1 * w1 + x0];
-            out[y * w + x] = set as usize == (x1 - x0) * (y1 - y0);
-        }
-    }
-    out
+            let (y0, y1) = (y.saturating_sub(r), (y + r + 1).min(h));
+            let count = (at(x1, y1) + at(x0, y0)).saturating_sub(at(x1, y0) + at(x0, y1));
+            count as usize == (x1 - x0) * (y1 - y0)
+        })
+        .collect()
 }
 
 /// Where a fill samples from around `r`: as Edit › Content-Aware Fill's automatic sampling area,
@@ -313,4 +320,24 @@ pub(super) fn content_aware_move(s: &mut Session, p: &Value) -> Result<Value> {
             Ok(json!({ "damage": damage_json(damage), "offset": [dx, dy], "mode": mode }))
         },
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::erode;
+
+    #[test]
+    fn erode_keeps_cells_whose_neighbourhood_is_set_and_ignores_the_border() {
+        // A 6×4 grid: a 4×3 block at the left edge (x 0..4, y 0..3) and a lone cell at (5, 3).
+        let (w, h) = (6, 4);
+        let m: Vec<bool> = (0..w * h).map(|i| (i % w < 4 && i / w < 3) || i == 3 * w + 5).collect();
+        let core: Vec<(usize, usize)> = erode(w, h, &m, 1).iter().enumerate().filter(|(_, c)| **c).map(|(i, _)| (i % w, i / w)).collect();
+        // The grid border doesn't erode (x = 0, y = 0); the block's open sides and the lone cell do.
+        assert_eq!(core, [(0, 0), (1, 0), (2, 0), (0, 1), (1, 1), (2, 1)]);
+        assert_eq!(erode(w, h, &m, 0), m);
+        assert!(erode(w, h, &m, 9).iter().all(|c| !c), "a radius beyond the block clears it");
+        // A mask shorter than the grid reads as unset, never out of bounds.
+        assert!(erode(w, h, &m[..5], 1).iter().all(|c| !c));
+        assert!(erode(0, 0, &[], 3).is_empty());
+    }
 }
