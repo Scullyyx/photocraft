@@ -2141,3 +2141,9 @@ cameraRaw	Blending	混合
 	% of all commits	占全部提交的 %
 	Lines +/−	行数 +/−
 	@{login}: {prs} PRs, {commits} commits, +{added} / −{deleted} lines (Δ {delta}), +{binAdded} / −{binDeleted} binary assets, {first} – {last}	@{login}：{prs} 个 PR，{commits} 次提交，行 +{added} / −{deleted}（Δ {delta}），二进制文件 +{binAdded} / −{binDeleted}，{first} – {last}
+
+# Layer colour labels.
+	Seafoam	海沫色
+	Indigo	靛蓝色
+	Fuchsia	紫红色
+	Violet	紫罗兰色

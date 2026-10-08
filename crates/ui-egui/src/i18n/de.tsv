@@ -2172,3 +2172,10 @@
 	% of all commits	% aller Commits
 	Lines +/−	Zeilen +/−
 	@{login}: {prs} PRs, {commits} commits, +{added} / −{deleted} lines (Δ {delta}), +{binAdded} / −{binDeleted} binary assets, {first} – {last}	@{login}: {prs} PRs, {commits} Commits, +{added} / −{deleted} Zeilen (Δ {delta}), +{binAdded} / −{binDeleted} Binärdateien, {first} – {last}
+
+# Layer colour labels.
+layerLabel	No Color	Keine Farbe
+	Seafoam	Meeresschaum
+	Indigo	Indigo
+	Fuchsia	Fuchsia
+	Violet	Violett
