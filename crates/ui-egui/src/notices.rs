@@ -42,7 +42,14 @@ fn cap_notices(app: &mut PhotocraftApp) {
     }
 }
 
-/// Show the Wayland-specific fallback guidance unless the user dismissed it in preferences.
+/// How to paste in hints: Edit › Paste's effective shortcut (`Ctrl+V`), else the menu path.
+pub(crate) fn paste_hint(app: &PhotocraftApp) -> String {
+    crate::shortcuts::shortcut_label(app, "edit.paste").unwrap_or_else(|| tl!("Edit › Paste").to_string())
+}
+
+/// Show the Wayland-specific fallback guidance unless the user dismissed it in preferences: winit
+/// 0.30 delivers no file drops on Wayland, so point at File › Open, pasting a copied file, and the
+/// command that starts this install under XWayland (where drops work), when there is one.
 pub fn wayland_file_drop_guidance(app: &mut PhotocraftApp) {
     if !app.services.is_wayland
         || app.session.prefs().dialogs.get(WAYLAND_FILE_DROP_DISMISSED).and_then(serde_json::Value::as_bool) == Some(true)
@@ -50,15 +57,15 @@ pub fn wayland_file_drop_guidance(app: &mut PhotocraftApp) {
     {
         return;
     }
-    post(
-        app,
-        tl!("Native file drag-and-drop is unavailable"),
-        vec![
-            tl!("Native file drag-and-drop is not supported on Wayland yet. Use File › Open, or run PhotoCraft under XWayland with `WAYLAND_DISPLAY= photocraft`.").into(),
-        ],
-        false,
-        Some(WAYLAND_FILE_DROP_DISMISSED),
-    );
+    let paste = paste_hint(app);
+    let mut lines = vec![crate::i18n::fmt(
+        tl!("Native file drag-and-drop is not supported on Wayland yet. Use File › Open, or copy the image in your file manager and paste it with {paste}."),
+        &[("paste", &paste)],
+    )];
+    if let Some(command) = &app.services.xwayland_command {
+        lines.push(crate::i18n::fmt(tl!("To drop files, start PhotoCraft under XWayland: `{command}`"), &[("command", command)]));
+    }
+    post(app, tl!("Native file drag-and-drop is unavailable"), lines, false, Some(WAYLAND_FILE_DROP_DISMISSED));
 }
 
 fn dismiss(app: &mut PhotocraftApp, id: u64) {
@@ -145,15 +152,18 @@ mod tests {
 
     #[test]
     fn wayland_guidance_is_only_shown_in_wayland_sessions() {
-        let mut app = PhotocraftApp::new(Session::new(), Services { is_wayland: true, ..Default::default() });
+        let command = Some("WAYLAND_DISPLAY= '/apps/Photo Craft.AppImage'".to_string());
+        let mut app = PhotocraftApp::new(Session::new(), Services { is_wayland: true, xwayland_command: command, ..Default::default() });
         assert_eq!(app.ui.notices.len(), 1);
         assert_eq!(app.ui.notices[0].title, "Native file drag-and-drop is unavailable");
         let guidance = app.ui.notices[0].lines.join(" ");
         assert!(guidance.contains("not supported on Wayland yet"));
         assert!(guidance.contains("File › Open"));
-        assert!(!guidance.contains("Ctrl+V"));
-        assert!(guidance.contains("XWayland"));
-        assert!(guidance.contains("WAYLAND_DISPLAY= photocraft"));
+        // Pasting a copied file works on Wayland (#338), so the notice offers it.
+        let paste = paste_hint(&app);
+        assert!(guidance.contains(&format!("paste it with {paste}")), "{guidance}");
+        // The relaunch command is the one for this install (an AppImage here), not a guess.
+        assert!(guidance.contains("under XWayland: `WAYLAND_DISPLAY= '/apps/Photo Craft.AppImage'`"), "{guidance}");
         assert_eq!(app.ui.notices[0].dismiss_pref.as_deref(), Some(WAYLAND_FILE_DROP_DISMISSED));
         for i in 0..MAX_NOTICES {
             post(&mut app, format!("Transient {i}"), Vec::new(), false, None);
@@ -163,6 +173,24 @@ mod tests {
 
         let app = PhotocraftApp::new(Session::new(), Services::default());
         assert!(app.ui.notices.is_empty());
+    }
+
+    #[test]
+    fn wayland_guidance_without_an_x_server_does_not_suggest_xwayland() {
+        let app = PhotocraftApp::new(Session::new(), Services { is_wayland: true, ..Default::default() });
+        let guidance = app.ui.notices[0].lines.join(" ");
+        assert!(guidance.contains("File › Open"));
+        assert!(!guidance.contains("XWayland"), "{guidance}");
+    }
+
+    #[test]
+    fn paste_hint_follows_the_shortcut_and_falls_back_to_the_menu() {
+        let mut app = PhotocraftApp::new(Session::new(), Services::default());
+        assert_eq!(paste_hint(&app), crate::shortcuts::shortcut_label(&app, "edit.paste").unwrap());
+        app.session.prefs.edit(|prefs| {
+            prefs.shortcuts.insert("edit.paste".into(), String::new());
+        });
+        assert_eq!(paste_hint(&app), "Edit › Paste");
     }
 
     #[test]
