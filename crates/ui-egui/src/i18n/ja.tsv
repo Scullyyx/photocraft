@@ -2116,3 +2116,13 @@ cameraRaw	Color	カラー
 	% of all commits	全コミットに占める割合 (%)
 	Lines +/−	行数 +/−
 	@{login}: {prs} PRs, {commits} commits, +{added} / −{deleted} lines (Δ {delta}), +{binAdded} / −{binDeleted} binary assets, {first} – {last}	@{login}: PR {prs} 件、コミット {commits} 件、行 +{added} / −{deleted} (Δ {delta})、バイナリ +{binAdded} / −{binDeleted}、{first} – {last}
+fontWeight	Thin	極細
+fontWeight	ExtraLight	特細
+fontWeight	Light	細字
+fontWeight	Regular	標準
+fontWeight	Medium	中間
+fontWeight	SemiBold	中太
+fontWeight	Bold	太字
+fontWeight	ExtraBold	特太
+fontWeight	Black	極太
+fontWeight	Italic	斜体
