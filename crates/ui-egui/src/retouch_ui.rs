@@ -10,6 +10,17 @@ use crate::canvas::ViewXform;
 use crate::state::Tool;
 use crate::theme::Tokens;
 
+/// The tool a stroke uses with ⌥ held: Dodge and Burn swap, as do Blur and Sharpen.
+pub(crate) fn alt_flipped(tool: Tool, alt: bool) -> Tool {
+    match (tool, alt) {
+        (Tool::Dodge, true) => Tool::Burn,
+        (Tool::Burn, true) => Tool::Dodge,
+        (Tool::Blur, true) => Tool::Sharpen,
+        (Tool::Sharpen, true) => Tool::Blur,
+        _ => tool,
+    }
+}
+
 /// Finish a stroke with a retouching tool. Returns false if `tool` isn't one.
 pub fn finish_stroke(app: &mut PhotocraftApp, tool: Tool, points: &[[f64; 3]], mods: egui::Modifiers) -> bool {
     let o = app.ui.tool_options.clone();
