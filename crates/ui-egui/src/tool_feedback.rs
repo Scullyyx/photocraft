@@ -89,7 +89,7 @@ pub fn badge(app: &PhotocraftApp, tool: Tool, m: egui::Modifiers) -> Option<Badg
     }
     let mut m = app.drag.as_ref().filter(|d| d.tool == Tool::Lasso && tool == Tool::Lasso).map_or(m, |d| d.modifiers);
     // The Lasso's Alt with nothing selected draws straight segments; it subtracts nothing.
-    if tool == Tool::Lasso && app.drag.is_none() && app.session.active().is_none_or(|st| st.doc.selection.is_none()) {
+    if matches!(tool, Tool::Lasso | Tool::PolygonLasso) && app.drag.is_none() && app.session.active().is_none_or(|st| st.doc.selection.is_none()) {
         m.alt = false;
     }
     Badge::from_mode(selection_mode(tool, app.ui.selection_mode, m))

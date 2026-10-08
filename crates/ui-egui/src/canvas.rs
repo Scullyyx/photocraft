@@ -2545,6 +2545,14 @@ pub fn tool_event(app: &mut PhotocraftApp, ev: ToolEvent, mods: egui::Modifiers)
             app.live_stroke = if strokes_live(tool) { begin_live_stroke(app) } else { None };
         }
         ToolEvent::Move { x, y, pressure } => {
+            // Polygonal Lasso: ⌥ held while the button is down draws freehand into the polygon;
+            // releasing ⌥ goes back to straight segments (the polygon stays open).
+            if tool == Tool::PolygonLasso && mods.alt && app.drag.is_none() && !app.ui.polygon.is_empty() {
+                if app.ui.polygon.last().is_none_or(|l| (l[0] - x).hypot(l[1] - y) >= 1.0) {
+                    app.ui.polygon.push([x, y]);
+                }
+                return;
+            }
             tool_move(app, x, y, pressure, mods);
             feed_live_stroke(app);
         }
@@ -2774,7 +2782,10 @@ fn polygon_click(app: &mut PhotocraftApp, x: f64, y: f64, mods: egui::Modifiers)
         return;
     }
     if app.ui.polygon.is_empty() {
-        app.ui.polygon_mode = selection_mode(app, mods).into();
+        // ⌥ with nothing selected draws freehand; there is nothing to subtract from.
+        let nothing_selected = app.session.active().is_none_or(|st| st.doc.selection.is_none());
+        let intent = if nothing_selected { egui::Modifiers { alt: false, ..mods } } else { mods };
+        app.ui.polygon_mode = selection_mode(app, intent).into();
     }
     app.ui.polygon.push([x, y]);
 }
