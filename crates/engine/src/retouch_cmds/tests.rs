@@ -874,3 +874,28 @@ fn content_aware_move_fails_gracefully() {
     }
     assert!(s.execute("paint.contentAwareMove", json!({"offset": [10, 0], "structure": 7.0, "color": null})).is_ok());
 }
+
+/// The live Clone Stamp shows what the commit paints: the same pixels, fed in pieces or at once,
+/// with soft overlapping dabs (built-up coverage) and opacity.
+#[test]
+fn live_clone_matches_the_commit() {
+    let mut s = session(96, 64, 8, "rgb");
+    paint_layer(&mut s, texture);
+    let p = json!({"points": [[50, 30], [60, 34], [70, 30], [80, 36]], "source": [20, 20], "size": 14, "hardness": 40, "opacity": 70});
+    let pts = |v: &[[f64; 2]]| v.iter().map(|q| StrokePoint::new(q[0], q[1], 1.0)).collect::<Vec<_>>();
+    let mut live = LiveClone::begin(&s, &json!({"points": [[50, 30]], "source": [20, 20], "size": 14, "hardness": 40, "opacity": 70})).unwrap();
+    live.push(&pts(&[[60.0, 34.0], [70.0, 30.0]])).unwrap();
+    live.push(&pts(&[[80.0, 36.0]])).unwrap();
+    let shown = live.doc.clone();
+    s.execute("paint.cloneStamp", p).unwrap();
+    let id = s.active().unwrap().active_layer.unwrap();
+    let (a, b) = (shown.layer(id).unwrap().surface().unwrap(), s.active().unwrap().doc.layer(id).unwrap().surface().unwrap());
+    for y in 20..46 {
+        for x in 40..92 {
+            let (got, want) = (a.rgba(x, y), b.rgba(x, y));
+            for c in 0..4 {
+                assert!((got[c] - want[c]).abs() <= tol(8), "({x}, {y}): live {got:?} vs commit {want:?}");
+            }
+        }
+    }
+}

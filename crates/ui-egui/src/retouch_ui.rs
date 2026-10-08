@@ -10,6 +10,24 @@ use crate::canvas::ViewXform;
 use crate::state::Tool;
 use crate::theme::Tokens;
 
+/// Clone Stamp / Healing Brush params for the options bar and the clone source (without
+/// `points` and `target`): shared by the live preview and the commit. `None` when no source
+/// point is set yet.
+pub(crate) fn clone_params(app: &PhotocraftApp) -> Option<Value> {
+    let o = &app.ui.tool_options;
+    let mut p = json!({"aligned": o.clone_aligned, "sampleLayer": o.clone_sample});
+    // The Clone Source panel's active slot (set by ⌥-click) drives the stroke: the engine keeps
+    // the aligned pairing and applies the slot's scale/rotation/flip.
+    let slot = app.session.presets.clone.active().source.is_some();
+    match (app.ui.clone_offset.filter(|_| o.clone_aligned && !slot), app.ui.clone_source.filter(|_| !slot)) {
+        _ if slot => {}
+        (Some(off), _) => p["offset"] = json!(off),
+        (None, Some(src)) => p["source"] = json!(src),
+        (None, None) => return None,
+    }
+    Some(p)
+}
+
 /// Finish a stroke with a retouching tool. Returns false if `tool` isn't one.
 pub fn finish_stroke(app: &mut PhotocraftApp, tool: Tool, points: &[[f64; 3]], mods: egui::Modifiers) -> bool {
     let o = app.ui.tool_options.clone();
@@ -18,26 +36,17 @@ pub fn finish_stroke(app: &mut PhotocraftApp, tool: Tool, points: &[[f64; 3]], m
         Tool::SpotHealing => ("paint.spotHealing", json!({"type": o.spot_type, "sampleAllLayers": o.sample_all_layers})),
         Tool::MixerBrush => ("paint.mixerBrush", json!({})),
         Tool::Healing | Tool::CloneStamp => {
-            let mut p = json!({"aligned": o.clone_aligned, "sampleLayer": o.clone_sample});
-            // The Clone Source panel's active slot (set by ⌥-click) drives the stroke: the engine
-            // keeps the aligned pairing and applies the slot's scale/rotation/flip.
-            let slot = app.session.presets.clone.active().source.is_some();
-            match (app.ui.clone_offset.filter(|_| o.clone_aligned && !slot), app.ui.clone_source.filter(|_| !slot)) {
-                _ if slot => {}
-                (Some(off), _) => p["offset"] = json!(off),
-                (None, Some(src)) => p["source"] = json!(src),
-                (None, None) => {
-                    // Photoshop says Option-click on the Mac and Alt-click on Windows.
-                    app.ui.status = if cfg!(target_os = "macos") {
-                        tl!("Option-click to define a source point to clone from")
-                    } else {
-                        tl!("Alt-click to define a source point to clone from")
-                    }
-                    .into();
-                    app.ui.status_error = true;
-                    return true;
+            let Some(p) = clone_params(app) else {
+                // Option-click on the Mac, Alt-click on Windows.
+                app.ui.status = if cfg!(target_os = "macos") {
+                    tl!("Option-click to define a source point to clone from")
+                } else {
+                    tl!("Alt-click to define a source point to clone from")
                 }
-            }
+                .into();
+                app.ui.status_error = true;
+                return true;
+            };
             (if tool == Tool::Healing { "paint.healingBrush" } else { "paint.cloneStamp" }, p)
         }
         Tool::HistoryBrush => ("paint.historyBrush", json!({})),
@@ -164,9 +173,21 @@ pub fn finish_object_selection(app: &mut PhotocraftApp, start: [f64; 2], end: [f
 pub fn set_source(app: &mut PhotocraftApp, x: f64, y: f64) {
     app.ui.clone_source = Some([x.round(), y.round()]);
     app.ui.clone_offset = None;
+    app.ui.clone_overlay = true;
     let _ = app.run("cloneSource.set", json!({"source": [x.round(), y.round()]}));
     app.ui.status = format!("Clone source set at {:.0}, {:.0}", x, y);
     app.ui.status_error = false;
+}
+
+/// Where the clone source is sampled for the pointer at `at`: the Clone Source slot's mapping,
+/// else the aligned offset, else the source point itself.
+pub(crate) fn sample_point(app: &PhotocraftApp, at: Option<[f64; 2]>) -> Option<[f64; 2]> {
+    match (crate::preset_panels::clone_sample_point(app, at), app.ui.clone_offset, at, app.ui.clone_source) {
+        (Some(p), ..) => Some(p),
+        (None, Some(off), Some(h), _) => Some([h[0] + off[0], h[1] + off[1]]),
+        (None, None, _, Some(s)) => Some(s),
+        _ => None,
+    }
 }
 
 /// Crosshair where the clone source is sampled from for the current pointer position.
@@ -176,13 +197,7 @@ pub fn draw_source_marker(app: &PhotocraftApp, painter: &egui::Painter, xf: &Vie
     }
     let at =
         app.drag.as_ref().filter(|d| matches!(d.tool, Tool::CloneStamp | Tool::Healing)).and_then(|d| d.points.last().map(|p| [p[0], p[1]])).or(app.hover_doc);
-    let src = match (crate::preset_panels::clone_sample_point(app, at), app.ui.clone_offset, at, app.ui.clone_source) {
-        (Some(p), ..) => Some(p),
-        (None, Some(off), Some(h), _) => Some([h[0] + off[0], h[1] + off[1]]),
-        (None, None, _, Some(s)) => Some(s),
-        _ => None,
-    };
-    let Some(s) = src else { return };
+    let Some(s) = sample_point(app, at) else { return };
     let c = xf.to_screen(s[0] as f32, s[1] as f32);
     for (w, col) in [(3.0, Color32::from_black_alpha(160)), (1.0, Color32::WHITE)] {
         painter.line_segment([c - vec2(7.0, 0.0), c + vec2(7.0, 0.0)], Stroke::new(w, col));
