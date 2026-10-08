@@ -22,7 +22,7 @@
 	Type	Tipo
 	Select	Selecionar
 	Filter	Filtro
-	View	Visualizar
+	View	Exibir
 	Window	Janela
 	Help	Ajuda
 	(coming soon)	(em breve)
@@ -103,8 +103,8 @@
 	Stroke…	Traçado…
 	Content-Aware Fill…	Preenchimento sensível ao conteúdo…
 	Content-Aware Scale	Escala sensível ao conteúdo
-	Puppet Warp	Distorção de marionete
-	Perspective Warp	Distorção de perspectiva
+	Puppet Warp	Deformação de marionete
+	Perspective Warp	Deformação de perspectiva
 	Free Transform	Transformação livre
 	Transform	Transformar
 	Again	Novamente
@@ -114,8 +114,8 @@
 	Distort	Distorcer
 	Perspective	Perspectiva
 	Warp	Deformar
-	Flip Horizontal	Inverter horizontalmente
-	Flip Vertical	Inverter verticalmente
+	Flip Horizontal	Espelhar horizontalmente
+	Flip Vertical	Espelhar verticalmente
 	Rotate 180°	Girar 180°
 	Rotate 90° Clockwise	Girar 90° no sentido horário
 	Rotate 90° Counter Clockwise	Girar 90° no sentido anti-horário
@@ -212,8 +212,8 @@
 	Image Size…	Tamanho da imagem…
 	Canvas Size…	Tamanho da tela de pintura…
 	Image Rotation	Rotação da imagem
-	Flip Canvas Horizontal	Inverter tela de pintura horizontalmente
-	Flip Canvas Vertical	Inverter tela de pintura verticalmente
+	Flip Canvas Horizontal	Espelhar tela de pintura horizontalmente
+	Flip Canvas Vertical	Espelhar tela de pintura verticalmente
 	Crop	Cortar
 	Trim…	Aparar…
 	Reveal All	Revelar tudo
@@ -849,8 +849,8 @@
 	Color:	Cor:
 	Colorize	Colorir
 	Colors	Cores
-	Commit Perspective Warp ({key})	Confirmar distorção de perspectiva ({key})
-	Commit Puppet Warp ({key})	Confirmar distorção de marionete ({key})
+	Commit Perspective Warp ({key})	Confirmar deformação de perspectiva ({key})
+	Commit Puppet Warp ({key})	Confirmar deformação de marionete ({key})
 	Commit any current edits ({key})	Confirmar as edições atuais ({key})
 	Commit current crop operation  ({key})	Confirmar a operação de corte atual  ({key})
 	Commit transform ({key})	Confirmar transformação ({key})
@@ -1003,11 +1003,11 @@
 	Fixed	Fixo
 	Fixed Ratio	Proporção fixa
 	Fixed Size	Tamanho fixo
-	Flip	Inverter
-	Flip X	Inverter X
-	Flip X Jitter	Variação de inversão X
-	Flip Y	Inverter Y
-	Flip Y Jitter	Variação de inversão Y
+	Flip	Espelhar
+	Flip X	Espelhar X
+	Flip X Jitter	Variação de espelhamento X
+	Flip Y	Espelhar Y
+	Flip Y Jitter	Variação de espelhamento Y
 	Flow	Fluxo
 	Flow Jitter	Variação do fluxo
 	Focal Length	Distância focal
@@ -1202,8 +1202,8 @@
 	Pause	Pausar
 	Percent	Porcentagem
 	Perceptual	Perceptivo
-	Perspective Warp is not active	A distorção de perspectiva não está ativa
-	Perspective Warp: draw planes along the image's perspective, then switch to Warp	Distorção de perspectiva: desenhe planos seguindo a perspectiva da imagem e depois mude para Deformar
+	Perspective Warp is not active	A deformação de perspectiva não está ativa
+	Perspective Warp: draw planes along the image's perspective, then switch to Warp	Deformação de perspectiva: desenhe planos seguindo a perspectiva da imagem e depois mude para Deformar
 	Photo Filter	Filtro de fotos
 	PhotoCraft	PhotoCraft
 	PhotoCraft Manages Colors	O PhotoCraft gerencia as cores
@@ -1245,7 +1245,7 @@
 	Protect Tones	Proteger tons
 	Proximity Match	Correspondência por proximidade
 	Pulled String Mode	Modo de cordão
-	Puppet Warp is not active	A distorção de marionete não está ativa
+	Puppet Warp is not active	A deformação de marionete não está ativa
 	Purity	Pureza
 	Quality	Qualidade
 	Quick Actions	Ações rápidas
@@ -1351,7 +1351,7 @@
 	Size:	Tamanho:
 	Slice Options…	Opções de fatia…
 	Slices From Guides	Fatias a partir de guias
-	Slices are locked (View › Lock Slices)	As fatias estão bloqueadas (Visualizar › Bloquear fatias)
+	Slices are locked (View › Lock Slices)	As fatias estão bloqueadas (Exibir › Bloquear fatias)
 	Small Caps	Versaletes
 	Smoothing	Suavização
 	Space After	Espaço depois
@@ -1481,9 +1481,9 @@
 	Conform	Conformar
 	Content-Aware Fill needs a selection on a pixel layer	O preenchimento sensível ao conteúdo precisa de uma seleção em uma camada de pixels
 	Could not transform: the layer is empty	Não foi possível transformar: a camada está vazia
-	Could not use Perspective Warp: the layer is empty	Não foi possível usar a distorção de perspectiva: a camada está vazia
-	Could not use Puppet Warp: no opaque pixels	Não foi possível usar a distorção de marionete: não há pixels opacos
-	Could not use Puppet Warp: the layer is empty	Não foi possível usar a distorção de marionete: a camada está vazia
+	Could not use Perspective Warp: the layer is empty	Não foi possível usar a deformação de perspectiva: a camada está vazia
+	Could not use Puppet Warp: no opaque pixels	Não foi possível usar a deformação de marionete: não há pixels opacos
+	Could not use Puppet Warp: the layer is empty	Não foi possível usar a deformação de marionete: a camada está vazia
 	Crop Tool	Ferramenta Corte demarcado
 	Crosswise	Em cruz
 	Current Tool	Ferramenta atual
@@ -1514,7 +1514,7 @@
 	Eraser	Borracha
 	Eraser Tool	Ferramenta Borracha
 	ExtraBold	Extranegrito
-	ExtraLight	Extrafino
+	ExtraLight	Extraleve
 	Eyedropper Tool	Ferramenta Conta-gotas
 	Fade	Atenuar
 	Fill Opacity	Opacidade do preenchimento
@@ -1549,7 +1549,7 @@
 	Layer Knocks Out Drop Shadow	A camada vaza a sombra projetada
 	Legal	Ofício
 	Letter	Carta
-	Light	Fino
+	Light	Leve
 	Line Tool	Ferramenta Linha
 	Linear	Linear
 	Linear Burn	Superexposição linear
@@ -2103,7 +2103,7 @@
 	Show New Snapshot Dialog by Default	Mostrar a caixa de diálogo Novo instantâneo por padrão
 	Clear History	Limpar histórico
 	Panel Options…	Opções do painel…
-	View menu	Menu Visualizar
+	View menu	Menu Exibir
 	Keep view in sync	Manter a visualização sincronizada
 	{zoom}%	{zoom}%
 	Mouse Controls	Controles do mouse
@@ -2132,7 +2132,7 @@
 	Roman	Normal
 	Bold Italic	Negrito itálico
 	Ultra Light	Ultrafino
-	Extra Light	Extrafino
+	Extra Light	Extraleve
 	Semi Bold	Seminegrito
 	Extra Bold	Extranegrito
 	Ultra Bold	Ultranegrito
@@ -2409,8 +2409,8 @@
 	Click to apply, ⌥-click to clear overrides, double-click for Style Options	Clique para aplicar, ⌥-clique para limpar substituições, clique duplo para Opções de estilo
 	Click to zoom in  ·  ⌥-click to zoom out	Clique para aumentar o zoom  ·  ⌥-clique para diminuir
 	Click: corner · Drag: smooth · Click first point: close · ↩ finish · Esc cancel	Clique: canto · Arrastar: suave · Clique no primeiro ponto: fechar · ↩ concluir · Esc cancelar
-	Commit Perspective Warp (↩)	Confirmar distorção de perspectiva (↩)
-	Commit Puppet Warp (↩)	Confirmar distorção de marionete (↩)
+	Commit Perspective Warp (↩)	Confirmar deformação de perspectiva (↩)
+	Commit Puppet Warp (↩)	Confirmar deformação de marionete (↩)
 	Commit any current edits (⌘↩)	Confirmar as edições atuais (⌘↩)
 	Commit current crop operation  (↵)	Confirmar a operação de corte atual  (↵)
 	Commit transform (↩)	Confirmar transformação (↩)
