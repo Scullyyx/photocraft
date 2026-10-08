@@ -2152,11 +2152,8 @@ fn draw_tool_state(app: &PhotocraftApp, painter: &egui::Painter, xf: &ViewXform,
         if let Some(h) = hover {
             pts.push(h);
         }
+        // Just the outline and its rubber band: the vertices aren't handles to grab.
         crate::tool_feedback::draw_ants(painter, &pts, false);
-        for p in pts.iter().take(app.ui.polygon.len()) {
-            painter.rect_filled(Rect::from_center_size(*p, vec2(5.0, 5.0)), 0.0, Color32::WHITE);
-            painter.rect_stroke(Rect::from_center_size(*p, vec2(5.0, 5.0)), 0.0, Stroke::new(1.0, Color32::BLACK), egui::StrokeKind::Outside);
-        }
     }
     if let Some(c) = app.ui.crop_rect {
         let r = Rect::from_two_pos(xf.to_screen(c[0] as f32, c[1] as f32), xf.to_screen(c[2] as f32, c[3] as f32));
