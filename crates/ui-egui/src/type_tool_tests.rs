@@ -988,7 +988,7 @@ fn temporary_type_transform_imported_psd_retains_editability_and_styles() {
 #[ignore = "release benchmark for issue #1091: 24 MP, eight text layers, 60 preview updates"]
 fn temporary_type_transform_large_document_preview() {
     use crate::canvas::{ToolEvent, tool_event};
-    let mut app = new_app();
+    let mut app = PhotocraftApp::new(photocraft_engine::Session::new(), crate::Services::default());
     app.run("file.new", json!({"width": 6000, "height": 4000})).unwrap();
     for i in 0..8 {
         app.run("type.create", json!({"text": "PhotoCraft transform preview", "size": 60, "x": 300, "y": 300 + i * 200})).unwrap();
@@ -998,6 +998,7 @@ fn temporary_type_transform_large_document_preview() {
     let a = frame.quad[2];
     let revision = app.session.active().unwrap().revision;
     let doc = app.session.active().unwrap().doc.id;
+    let index = app.session.active_index().unwrap();
     let count = app.session.active().unwrap().history.entries().len();
     let source = (*app.session.active().unwrap().doc).clone();
     let layer = app.ui.text_edit.as_ref().unwrap().layer;
@@ -1008,12 +1009,12 @@ fn temporary_type_transform_large_document_preview() {
     for i in 1..=60 {
         let started = std::time::Instant::now();
         tool_event(&mut app, ToolEvent::Move { x: a[0] + f64::from(i) * 2.0, y: a[1] + f64::from(i), pressure: 1.0 }, type_command());
-        let (_, after) = crate::type_transform::display_doc(&mut app, 0).unwrap();
+        let (_, after) = crate::type_transform::display_doc(&mut app, index).unwrap();
         times.push(started.elapsed().as_secs_f64() * 1000.0);
         transforms.push(crate::type_transform::current_transform(&app, LayerId(layer)).unwrap());
         let damage = crate::type_transform::damage(&app, doc, revision, before, after).unwrap();
         assert!(i64::from(damage.width()) * i64::from(damage.height()) < 2_000_000, "preview only damages the type layer");
-        let (_, same) = crate::type_transform::display_doc(&mut app, 0).unwrap();
+        let (_, same) = crate::type_transform::display_doc(&mut app, index).unwrap();
         assert_eq!(same, after, "stationary pointer reuses the rendered preview");
         before = after;
     }
