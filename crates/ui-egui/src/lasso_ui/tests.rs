@@ -250,3 +250,38 @@ fn real_canvas_backspace_and_right_click_retract_polygonal_points() {
     assert!(h.state().session.active().unwrap().doc.layer(layer).is_some());
     assert!(h.state().session.active().unwrap().doc.selection.is_none());
 }
+
+#[test]
+fn polygonal_lasso_backspace_and_right_click_remove_the_last_vertex() {
+    // #1229: with the Polygonal Lasso tool, ⌫ took Edit › Clear and wiped the layer.
+    let mut h = harness();
+    h.state_mut().ui.tool = Tool::PolygonLasso;
+    h.run_steps(1);
+    for (x, y) in [(50.0, 50.0), (150.0, 50.0), (150.0, 120.0)] {
+        mouse(&mut h, "down", x, y, Modifiers::NONE);
+        mouse(&mut h, "up", x, y, Modifiers::NONE);
+    }
+    assert_eq!(h.state().ui.polygon.len(), 3);
+    let st = h.state().session.active().unwrap();
+    let (layer, steps) = (st.active_layer.unwrap(), st.history.past_len());
+    for key in [egui::Key::Backspace, egui::Key::Delete] {
+        h.event(Event::Key { key, physical_key: None, pressed: true, repeat: false, modifiers: Modifiers::NONE });
+        h.run_steps(2);
+    }
+    assert_eq!(h.state().ui.polygon.len(), 1);
+    // A right-click removes the last one and cancels the polygon, without a context menu.
+    let app = h.state();
+    let v = &app.ui.views[0];
+    let xf = ViewXform { rect: crate::rulers::content_rect(app, app.last_canvas_rect), zoom: v.zoom, center: v.center, flip: false };
+    let pos = xf.to_screen(90.0, 90.0);
+    h.event(Event::PointerMoved(pos));
+    h.event(Event::PointerButton { pos, button: PointerButton::Secondary, pressed: true, modifiers: Modifiers::NONE });
+    h.run_steps(1);
+    h.event(Event::PointerButton { pos, button: PointerButton::Secondary, pressed: false, modifiers: Modifiers::NONE });
+    h.run_steps(2);
+    assert!(h.state().ui.polygon.is_empty() && h.state().ui.polygon_mode.is_empty());
+    assert!(h.state().ui.canvas_tool_menu.is_none());
+    let st = h.state().session.active().unwrap();
+    assert!(st.doc.layer(layer).is_some(), "the layer survives");
+    assert_eq!(st.history.past_len(), steps, "nothing was edited");
+}
