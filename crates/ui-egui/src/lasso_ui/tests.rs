@@ -226,3 +226,17 @@ fn a_drag_inside_the_selection_moves_it() {
     assert!(h.state().drag.is_none());
     assert_eq!(bounds(h.state()), Some(photocraft_geom::Rect::new(110, 105, 160, 145)));
 }
+
+#[test]
+fn clicking_the_last_point_again_closes_the_outline() {
+    let mut app = app();
+    for [x, y] in [[50.0, 50.0], [250.0, 50.0], [150.0, 200.0]] {
+        event(&mut app, "down", x, y, Modifiers::ALT);
+        event(&mut app, "up", x, y, Modifiers::ALT);
+    }
+    assert!(active(&app));
+    // Alt still held: a second click on the last point (however long after) closes it.
+    event(&mut app, "down", 151.0, 199.0, Modifiers::ALT);
+    assert!(!active(&app));
+    assert!(app.session.active().unwrap().doc.selection.as_ref().unwrap().sample_channel(150, 100, 0) > 0.9);
+}
