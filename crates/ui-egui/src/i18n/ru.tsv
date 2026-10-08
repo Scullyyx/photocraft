@@ -34,6 +34,7 @@
 	New from Clipboard	Создать из буфера обмена
 	New	Создать
 	Open…	Открыть…
+	Open as Deep…	Открыть как deep…
 	Open	Открыть
 	Open As…	Открыть как…
 	Open Recent	Открыть недавние
@@ -2407,3 +2408,4 @@ cameraRaw	Roughness	Неровность
 	% of all commits	% от всех коммитов
 	Lines +/−	Строки +/−
 	@{login}: {prs} PRs, {commits} commits, +{added} / −{deleted} lines (Δ {delta}), +{binAdded} / −{binDeleted} binary assets, {first} – {last}	@{login}: PR: {prs}, коммиты: {commits}, строки +{added} / −{deleted} (Δ {delta}), двоичные файлы +{binAdded} / −{binDeleted}, {first} – {last}
+	Filter for deep layers	Фильтр по глубоким слоям
