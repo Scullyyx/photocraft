@@ -613,8 +613,8 @@ fn step(app: &mut PhotocraftApp, redo: bool) -> serde_json::Value {
 }
 
 /// Which part of the box a document point hits.
-#[derive(Clone, Copy, Debug, PartialEq)]
-enum Hit {
+#[derive(Clone, Copy, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+pub(crate) enum Hit {
     Corner(usize),
     Edge(usize),
     Pivot,
@@ -624,7 +624,7 @@ enum Hit {
 
 /// The nearest handle within `tol` (on a small box their grab areas overlap), else inside or
 /// outside the box.
-fn hit(t: &TransformSession, p: [f64; 2], tol: f64) -> Hit {
+pub(crate) fn hit(t: &TransformSession, p: [f64; 2], tol: f64) -> Hit {
     let d = |a: [f64; 2]| ((a[0] - p[0]).powi(2) + (a[1] - p[1]).powi(2)).sqrt();
     let mid = |i: usize| {
         let (a, b) = (t.quad[i], t.quad[(i + 1) % 4]);
@@ -651,12 +651,12 @@ fn inside(q: &[[f64; 2]; 4], p: [f64; 2]) -> bool {
 }
 
 /// Transient drag state (kept in egui memory; not part of the serialised session).
-#[derive(Clone, Copy, Debug)]
-struct Gesture {
-    hit: Hit,
-    start: [f64; 2],
-    quad0: [[f64; 2]; 4],
-    pivot0: [f64; 2],
+#[derive(Clone, Copy, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+pub(crate) struct Gesture {
+    pub(crate) hit: Hit,
+    pub(crate) start: [f64; 2],
+    pub(crate) quad0: [[f64; 2]; 4],
+    pub(crate) pivot0: [f64; 2],
 }
 
 /// Pointer input while transforming. Returns false when no transform is active.
@@ -725,7 +725,7 @@ fn distort_allows(mode: TransformMode, h: Hit) -> bool {
     mode != TransformMode::Distort || !matches!(h, Hit::Outside | Hit::Edge(_))
 }
 
-fn apply_drag(s: &mut TransformSession, g: Gesture, p: [f64; 2], mods: egui::Modifiers) {
+pub(crate) fn apply_drag(s: &mut TransformSession, g: Gesture, p: [f64; 2], mods: egui::Modifiers) {
     let (dx, dy) = (p[0] - g.start[0], p[1] - g.start[1]);
     match g.hit {
         Hit::Inside => {
