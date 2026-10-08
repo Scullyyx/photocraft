@@ -349,8 +349,12 @@ pub struct PhotocraftApp {
     /// Whether the window uses an integrated (transparent) macOS title bar.
     pub integrated_titlebar: bool,
     /// Windows and Linux: the window has no OS decorations and the app's top bar is the title bar
-    /// (caption buttons, window dragging and edge resizing, `titlebar`).
+    /// (caption buttons, window dragging and edge resizing, `titlebar`). Off when Preferences ›
+    /// Interface › Use System Title Bar is on, so the OS frame comes back.
     pub custom_titlebar: bool,
+    /// The native window decorations last requested (`titlebar::sync_decorations`); `None` until the
+    /// first frame sends it.
+    pub window_decorations: Option<bool>,
     fonts_ready: bool,
     /// Screen rect of the main canvas last frame (for overlays and the navigator).
     pub last_canvas_rect: egui::Rect,
@@ -488,6 +492,7 @@ impl PhotocraftApp {
             styled: false,
             integrated_titlebar: false,
             custom_titlebar: false,
+            window_decorations: None,
             fonts_ready: false,
             last_canvas_rect: egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(800.0, 600.0)),
             drop_canvas_rect: None,
@@ -994,6 +999,9 @@ impl eframe::App for PhotocraftApp {
         self.collect_screenshots(ctx);
         self.issue_screenshots(ctx);
         prefs_ui::tick(self, ctx);
+        // Keep the OS frame and the app's own title bar in step with Preferences › Interface ›
+        // Use System Title Bar.
+        titlebar::sync_decorations(self, ctx);
         monitor_status::poll(self, ctx);
         // Control requests and persisted preferences can change the language in this frame.
         i18n::sync_context(ctx, &self.session.prefs().interface.language);

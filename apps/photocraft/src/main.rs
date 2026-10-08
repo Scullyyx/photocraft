@@ -280,7 +280,8 @@ fn main() -> eframe::Result {
             }
             let mut app = PhotocraftApp::new(Session::new(), services);
             app.integrated_titlebar = cfg!(target_os = "macos");
-            app.custom_titlebar = CUSTOM_TITLEBAR;
+            // Preferences › Interface › Use System Title Bar hands the frame back to the OS.
+            app.custom_titlebar = CUSTOM_TITLEBAR && !app.session.prefs().interface.use_system_title_bar;
             // Only the title bar's free gap drags the window, never the menus (mac_window.rs).
             #[cfg(target_os = "macos")]
             mac_window::disable_native_title_drag();
