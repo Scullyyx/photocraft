@@ -9,7 +9,8 @@
 
   The binaries link the C runtime statically (+crt-static), so neither the MSI nor the portable
   zip needs the Visual C++ redistributable. Signing is delegated to sign.ps1 (skipped with a
-  warning when no signing secrets are set).
+  warning when no signing secrets are set). The CLI icon and VERSIONINFO are checked after the
+  PE header checks and before signing (including -SkipBuild).
 
   Needs: Rust (MSVC toolchain + the target), the Windows SDK (rc.exe, signtool.exe),
   and WiX v5: dotnet tool install --global wix --version 5.0.2
@@ -83,6 +84,12 @@ foreach ($check in @(@('photocraft.exe', 2), @('photocraft-cli.exe', 3))) {
   if ($h.Subsystem -ne $check[1]) { throw "$($check[0]) has PE subsystem $($h.Subsystem), expected $($check[1])" }
   Write-Output "ok $($check[0]): $Arch, PE subsystem $($h.Subsystem)"
 }
+# VERSIONINFO and the embedded icon. Reads the PE; does not execute it, so an arm64 binary
+# built on x64 is checked the same way. -SkipBuild still reaches this.
+& (Join-Path $PSScriptRoot 'check-cli-resources.ps1') `
+  -Binary (Join-Path $Bin 'photocraft-cli.exe') `
+  -Icon (Join-Path $Root 'assets\app-icon\photocraft.ico') `
+  -Version $Version
 $Stage = Join-Path $TargetDir "windows-package\$Arch"
 Remove-Item -Recurse -Force $Stage -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force -Path $Stage | Out-Null
