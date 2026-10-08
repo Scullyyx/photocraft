@@ -2626,13 +2626,11 @@ pub fn selection_drag_kind(app: &PhotocraftApp, tool: Tool, p: [f64; 2], mods: e
         let on = inside_selection(app, [p[0] - f64::from(f.offset.0), p[1] - f64::from(f.offset.1)]);
         return (on && !mods.shift && (!mods.alt || mods.command) && (cut || !clicky)).then_some(true);
     }
-    // ⌘ / ⌘⌥ never combine selections: with a selection they cut / copy it and drag it from
-    // wherever the press is.
-    if cut && app.session.active().is_some_and(|st| st.doc.selection.is_some()) {
-        return Some(true);
-    }
     if !inside_selection(app, p) {
         return None;
+    }
+    if cut {
+        return Some(true);
     }
     (!clicky && !mods.command && selection_mode(app, mods) == "replace").then_some(false)
 }
