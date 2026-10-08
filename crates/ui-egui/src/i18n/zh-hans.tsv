@@ -844,6 +844,11 @@
 	Click to add a point · drag off or ⌘/Ctrl-click or Delete to remove	单击添加点 · 拖离、按 ⌘/Ctrl 单击或按 Delete 移除
 	Click to apply, ⌥-click to clear overrides, double-click for Style Options	单击应用，按 ⌥ 单击清除覆盖设置，双击打开样式选项
 	Click to edit the gradient	单击编辑渐变
+	Opacity stops	不透明度色标
+	Location	位置
+	Delete opacity stop	删除不透明度色标
+	Add opacity stop	添加不透明度色标
+	Gradient Editor	渐变编辑器
 	Click to restore the current colour	单击恢复当前颜色
 	Click to zoom in  ·  ⌥-click to zoom out	单击放大  ·  按 ⌥ 单击缩小
 	Click with the Note tool to add a note.	使用注释工具单击以添加注释。

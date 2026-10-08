@@ -22,6 +22,8 @@ use crate::theme::Tokens;
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct PresetUi {
+    /// Floating Gradient Editor opened from the options-bar swatch.
+    pub gradient_editor: bool,
     /// Floating panels.
     pub styles: bool,
     pub shapes: bool,
@@ -329,6 +331,7 @@ fn browser(
                 let (cx, cy) = ((ii % cols) as f32, (ii / cols) as f32);
                 let r = Rect::from_min_size(area.min + vec2(pad + cx * (cell.x + gap), cy * (cell.y + gap)), cell);
                 let resp = ui.interact(r, ui.id().with((panel, gi, ii)), Sense::click_and_drag());
+                resp.widget_info(|| egui::WidgetInfo::labeled(egui::WidgetType::Button, true, &it.name));
                 let is_sel = selected.as_deref() == Some(&it.key);
                 if list {
                     if is_sel {

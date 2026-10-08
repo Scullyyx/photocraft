@@ -845,6 +845,11 @@
 	Click to add a point · drag off or {key}-click or Delete to remove	クリックで点を追加 · 外へドラッグ、{key}+クリック、Delete で削除
 	Click to apply, {key}-click to clear overrides, double-click for Style Options	クリックで適用、{key}+クリックで上書き解除、ダブルクリックでスタイルオプション
 	Click to edit the gradient	クリックしてグラデーションを編集
+	Opacity stops	不透明度ストップ
+	Location	位置
+	Delete opacity stop	不透明度ストップを削除
+	Add opacity stop	不透明度ストップを追加
+	Gradient Editor	グラデーションエディター
 	Click to restore the current colour	クリックして現在の色に戻す
 	Click to zoom in  ·  {key}-click to zoom out  ·  drag right/left to zoom in/out	クリックで拡大 · {key}+クリックで縮小 · 右/左にドラッグで拡大/縮小
 	Click with the Note tool to add a note.	注釈ツールでクリックすると注釈を追加できます。

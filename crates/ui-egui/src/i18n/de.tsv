@@ -836,6 +836,11 @@
 	Click to add a point · drag off or {key}-click or Delete to remove	Klicken fügt einen Punkt hinzu · Wegziehen, {key}-Klick oder Entfernen löscht ihn
 	Click to apply, {key}-click to clear overrides, double-click for Style Options	Klicken wendet an, {key}-Klick löscht Überschreibungen, Doppelklick öffnet die Stiloptionen
 	Click to edit the gradient	Klicke, um den Verlauf zu bearbeiten
+	Gradient Editor	Verlaufseditor
+	Opacity stops	Deckkraftstopps
+	Location	Position
+	Delete opacity stop	Deckkraftstopp löschen
+	Add opacity stop	Deckkraftstopp hinzufügen
 	Click to restore the current colour	Klicke, um die aktuelle Farbe wiederherzustellen
 	Click to zoom in  ·  {key}-click to zoom out  ·  drag right/left to zoom in/out	Klicken vergrößert  ·  {key}-Klick verkleinert  ·  nach rechts/links ziehen zoomt rein/raus
 	Click with the Note tool to add a note.	Klicke mit dem Notiz-Werkzeug, um eine Notiz hinzuzufügen.

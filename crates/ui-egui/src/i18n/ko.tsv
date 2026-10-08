@@ -823,6 +823,11 @@
 	Click to add a point · drag off or {key}-click or Delete to remove	클릭하여 점 추가 · 바깥으로 드래그하거나 {key} 키를 누른 채 클릭하거나 Delete 키로 제거
 	Click to apply, {key}-click to clear overrides, double-click for Style Options	클릭하여 적용, {key} 키를 누른 채 클릭하여 재정의 지우기, 두 번 클릭하여 스타일 옵션 열기
 	Click to edit the gradient	클릭하여 그레이디언트 편집
+	Opacity stops	불투명도 중지점
+	Location	위치
+	Delete opacity stop	불투명도 중지점 삭제
+	Add opacity stop	불투명도 중지점 추가
+	Gradient Editor	그레이디언트 편집기
 	Click to restore the current colour	클릭하여 현재 색상 복원
 	Click to zoom in  ·  {key}-click to zoom out  ·  drag right/left to zoom in/out	클릭하여 확대 · {key} 키를 누른 채 클릭하여 축소 · 오른쪽/왼쪽으로 드래그하여 확대/축소
 	Click with the Note tool to add a note.	메모 도구로 클릭하여 메모를 추가하세요.

@@ -846,6 +846,11 @@
 	Click to add a point · drag off or {key}-click or Delete to remove	按一下新增點 · 拖出、{key}+按一下或按 Delete 以移除
 	Click to apply, {key}-click to clear overrides, double-click for Style Options	按一下套用，{key}+按一下清除覆寫，連按兩下開啟樣式選項
 	Click to edit the gradient	按一下以編輯漸層
+	Opacity stops	不透明度色標
+	Location	位置
+	Delete opacity stop	刪除不透明度色標
+	Add opacity stop	新增不透明度色標
+	Gradient Editor	漸層編輯器
 	Click to restore the current colour	按一下以還原目前顏色
 	Click to zoom in  ·  {key}-click to zoom out  ·  drag right/left to zoom in/out	按一下放大  ·  {key}+按一下縮小  ·  向右/向左拖曳以放大/縮小
 	Click with the Note tool to add a note.	使用註解工具按一下以新增註解。

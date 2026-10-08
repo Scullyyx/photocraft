@@ -70,7 +70,7 @@ pub enum Outcome {
 
 /// The fields `ui.set` reads. Anything else is rejected before a field is applied, so a typo or
 /// a field the method doesn't have can't reply with success while nothing changes (#412).
-pub const UI_SET_FIELDS: [&str; 19] = [
+pub const UI_SET_FIELDS: [&str; 20] = [
     "tool",
     "panels",
     "dock",
@@ -90,6 +90,7 @@ pub const UI_SET_FIELDS: [&str; 19] = [
     "brushSize",
     "gradientBlendMode",
     "gradientClassic",
+    "gradientEditor",
 ];
 
 fn ok(v: Value) -> Outcome {
@@ -221,6 +222,11 @@ fn dispatch(app: &mut PhotocraftApp, ctx: &egui::Context, req: &ControlRequest) 
             {
                 return err("gradientClassic must be a boolean");
             }
+            if let Some(value) = p.get("gradientEditor")
+                && !value.is_boolean()
+            {
+                return err("gradientEditor must be a boolean");
+            }
             if let Some(t) = s("tool") {
                 match Tool::from_name(t) {
                     Some(t) => app.ui.tool = t,
@@ -233,6 +239,9 @@ fn dispatch(app: &mut PhotocraftApp, ctx: &egui::Context, req: &ControlRequest) 
             }
             if let Some(classic) = p.get("gradientClassic").and_then(Value::as_bool) {
                 app.ui.tool_options.gradient_classic = classic;
+            }
+            if let Some(open) = p.get("gradientEditor").and_then(Value::as_bool) {
+                app.ui.presets_ui.gradient_editor = open;
             }
             if gradient_blend.is_some() {
                 crate::gradient_ui::options_changed(app, &gradient_before);
@@ -602,6 +611,7 @@ pub fn inspect(app: &PhotocraftApp, ctx: &egui::Context) -> Value {
         "tool": app.ui.tool,
         "toolOptions": app.ui.tool_options,
         "magnetic": app.ui.magnetic,
+        "gradientEditor": app.ui.presets_ui.gradient_editor,
         "textEdit": app.ui.text_edit,
         "layerMenu": app.ui.layer_menu,
         "canvasToolMenu": app.ui.canvas_tool_menu.as_ref().map(|menu| {
@@ -777,6 +787,12 @@ mod tests {
         let bad = call(&mut app, &ctx, "ui.set", json!({"gradientBlendMode": "nonsense", "gradientClassic": false}));
         assert_eq!(bad["ok"], false, "{bad}");
         assert!(app.ui.tool_options.gradient_classic, "invalid mode must not change options");
+        assert_eq!(call(&mut app, &ctx, "ui.set", json!({"gradientEditor": true}))["ok"], true);
+        assert!(app.ui.presets_ui.gradient_editor);
+        assert_eq!(call(&mut app, &ctx, "ui.set", json!({"tool": "brush", "gradientEditor": "bad"}))["ok"], false);
+        assert_eq!(app.ui.tool, Tool::Gradient, "invalid editor state must not change the tool");
+        assert_eq!(call(&mut app, &ctx, "ui.set", json!({"gradientEditor": false}))["ok"], true);
+        assert!(!app.ui.presets_ui.gradient_editor);
     }
 
     #[test]

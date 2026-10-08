@@ -830,6 +830,10 @@
 	Click to add a point · drag off or {key}-click or Delete to remove	Cliquez pour ajouter un point · faites-le glisser hors du cadre, {key}-clic ou Suppr pour le retirer
 	Click to apply, {key}-click to clear overrides, double-click for Style Options	Cliquez pour appliquer, {key}-clic pour effacer les substitutions, double-clic pour les options de style
 	Click to edit the gradient	Cliquez pour modifier le dégradé
+	Opacity stops	Étapes d’opacité
+	Delete opacity stop	Supprimer l’étape d’opacité
+	Add opacity stop	Ajouter une étape d’opacité
+	Gradient Editor	Éditeur de dégradé
 	Click to restore the current colour	Cliquez pour rétablir la couleur actuelle
 	Click to zoom in  ·  {key}-click to zoom out  ·  drag right/left to zoom in/out	Cliquez pour zoomer  ·  {key}-clic pour dézoomer  ·  faites glisser vers la droite/gauche pour zoomer/dézoomer
 	Click with the Note tool to add a note.	Cliquez avec l'outil Note pour ajouter une note.

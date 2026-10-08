@@ -502,6 +502,11 @@
 	Default colours (D)	Цвета по умолчанию (D)
 	Brush Tool Options	Параметры кисти
 	Opacity	Непрозрачность
+	Opacity stops	Маркеры непрозрачности
+	Click to edit the gradient	Нажмите, чтобы изменить градиент
+	Delete opacity stop	Удалить маркер непрозрачности
+	Add opacity stop	Добавить маркер непрозрачности
+	Gradient Editor	Редактор градиента
 	Flow	Нажим
 	Smoothing	Сглаживание
 	Size	Размер

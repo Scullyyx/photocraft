@@ -855,6 +855,11 @@
 	Click to add a point · drag off or {key}-click or Delete to remove	Kliknutím přidáte bod · odstraníte tažením ven, {key}+kliknutím nebo klávesou Delete
 	Click to apply, {key}-click to clear overrides, double-click for Style Options	Kliknutím použijete, {key}+kliknutím zrušíte přepsání, dvojklikem otevřete možnosti stylu
 	Click to edit the gradient	Kliknutím upravíte přechod
+	Opacity stops	Zarážky krytí
+	Location	Umístění
+	Delete opacity stop	Odstranit zarážku krytí
+	Add opacity stop	Přidat zarážku krytí
+	Gradient Editor	Editor přechodu
 	Click to restore the current colour	Kliknutím obnovíte aktuální barvu
 	Click to zoom in  ·  {key}-click to zoom out  ·  drag right/left to zoom in/out	Kliknutím přiblížíte  ·  {key}+kliknutím oddálíte  ·  tažením doprava/doleva přiblížíte/oddálíte
 	Click with the Note tool to add a note.	Poznámku přidáte kliknutím nástrojem poznámka.
